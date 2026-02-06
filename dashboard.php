@@ -1,10 +1,7 @@
 <?php
 require_once 'config.php';
-if (!isset($_SESSION['user_authenticated']) || $_SESSION['user_authenticated'] !== true) {
-    header('Location: index.php');
-    exit;
-}
-$user_id = 1;
+checkAuth();
+$user_id = getAuthenticatedUserId();
 
 /**
  * "2-3 gün" / "3-5 gün" / "7 gün" gibi timeframe'den gün sayısını yakala.
@@ -77,6 +74,39 @@ function calcPerformance(PDO $pdo, int $user_id): array {
     ];
 }
 
+/**
+ * Son X gün performansı
+ */
+function calcRecentPerformance(PDO $pdo, int $user_id, int $days): array {
+    $stmt = $pdo->prepare("
+        SELECT
+            COUNT(*) AS total,
+            SUM(
+                CASE
+                    WHEN realized_profit_percent > 0 THEN 1
+                    ELSE 0
+                END
+            ) AS win
+        FROM trade_results
+        WHERE user_id = ?
+          AND closed_at >= DATE_SUB(NOW(), INTERVAL ? DAY)
+    ");
+    $stmt->execute([$user_id, $days]);
+    $row = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
+
+    $total = (int)($row['total'] ?? 0);
+    $win = (int)($row['win'] ?? 0);
+    $loss = max(0, $total - $win);
+    $win_rate = $total > 0 ? round(($win / $total) * 100, 1) : 0.0;
+
+    return [
+        'total' => $total,
+        'win' => $win,
+        'loss' => $loss,
+        'win_rate' => $win_rate,
+    ];
+}
+
 // İstatistikler
 $stats = $pdo->query("
     SELECT 
@@ -100,6 +130,8 @@ $top = $opportunities[0] ?? null;
 
 // Performans
 $perf = calcPerformance($pdo, $user_id);
+$recent7 = calcRecentPerformance($pdo, $user_id, 7);
+$recent30 = calcRecentPerformance($pdo, $user_id, 30);
 
 // Grafik datası (son 10)
 $chartOpps = array_slice($opportunities, 0, 10);
@@ -484,6 +516,16 @@ foreach (array_reverse($chartOpps) as $o) {
             <div class="stat-label">Başarı Oranı</div>
             <div class="stat-value"><?php echo number_format((float)$perf['win_rate'], 1); ?>%</div>
             <div class="stat-change">✅ <?php echo (int)$perf['closed_win']; ?> / ❌ <?php echo (int)$perf['closed_loss']; ?> (Kapanan: <?php echo (int)$perf['closed_total']; ?>)</div>
+        </div>
+        <div class="card">
+            <div class="stat-label">Son 7 Gün</div>
+            <div class="stat-value"><?php echo number_format((float)$recent7['win_rate'], 1); ?>%</div>
+            <div class="stat-change">✅ <?php echo (int)$recent7['win']; ?> / ❌ <?php echo (int)$recent7['loss']; ?> (<?php echo (int)$recent7['total']; ?>)</div>
+        </div>
+        <div class="card">
+            <div class="stat-label">Son 30 Gün</div>
+            <div class="stat-value"><?php echo number_format((float)$recent30['win_rate'], 1); ?>%</div>
+            <div class="stat-change">✅ <?php echo (int)$recent30['win']; ?> / ❌ <?php echo (int)$recent30['loss']; ?> (<?php echo (int)$recent30['total']; ?>)</div>
         </div>
         <div class="card">
             <div class="stat-label">Ortalama Getiri</div>
