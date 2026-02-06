@@ -270,6 +270,12 @@ foreach (array_reverse($chartOpps) as $o) {
             position:relative;
             overflow:hidden;
             box-shadow: 0 18px 45px rgba(8, 12, 24, 0.45);
+            transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+        }
+        .card:hover{
+            transform: translateY(-2px);
+            border-color: rgba(99,102,241,.55);
+            box-shadow: 0 24px 70px rgba(8, 12, 24, 0.55);
         }
         .card::before{
             content:'';
@@ -337,7 +343,7 @@ foreach (array_reverse($chartOpps) as $o) {
             gap:18px;margin-bottom:22px
         }
         .stat-label{font-size:12px;color:#94a3b8;font-weight:800;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px}
-        .stat-value{font-size:34px;font-weight:900;margin-bottom:8px}
+        .stat-value{font-size:34px;font-weight:900;margin-bottom:8px;letter-spacing:.2px}
         .stat-change{font-size:13px;color:#10b981;font-weight:800}
         .stat-change.neg{color:#ef4444}
 
