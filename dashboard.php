@@ -37,7 +37,14 @@ function riskLabel(string $risk): array {
  * - BUY için target > entry ise "başarılı", değilse "başarısız" sayar (baseline).
  * Not: Gerçek performans için updater mantığına bağlayacağız.
  */
-function calcPerformance(PDO $pdo, int $user_id): array {
+function calcPerformance(PDO $pdo, ?int $user_id): array {
+    $whereUser = '';
+    $params = [];
+    if ($user_id !== null) {
+        $whereUser = 'WHERE user_id = ? AND';
+        $params[] = $user_id;
+    }
+
     // Kapanmış sinyaller: expires_at geçmiş veya is_active=0 (ikisini de sayalım)
     $stmt = $pdo->prepare("
         SELECT
@@ -52,10 +59,10 @@ function calcPerformance(PDO $pdo, int $user_id): array {
             AVG(expected_profit_percent) AS avg_expected,
             AVG(confidence_score) AS avg_conf
         FROM opportunities
-        WHERE user_id = ?
-          AND ( (expires_at IS NOT NULL AND expires_at <= NOW()) OR is_active = 0 )
+        {$whereUser}
+        ( (expires_at IS NOT NULL AND expires_at <= NOW()) OR is_active = 0 )
     ");
-    $stmt->execute([$user_id]);
+    $stmt->execute($params);
     $row = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
 
     $closed_total = (int)($row['closed_total'] ?? 0);
@@ -77,7 +84,15 @@ function calcPerformance(PDO $pdo, int $user_id): array {
 /**
  * Son X gün performansı
  */
-function calcRecentPerformance(PDO $pdo, int $user_id, int $days): array {
+function calcRecentPerformance(PDO $pdo, ?int $user_id, int $days): array {
+    $whereUser = '';
+    $params = [];
+    if ($user_id !== null) {
+        $whereUser = 'WHERE user_id = ? AND';
+        $params[] = $user_id;
+    }
+    $params[] = $days;
+
     $stmt = $pdo->prepare("
         SELECT
             COUNT(*) AS total,
@@ -88,10 +103,10 @@ function calcRecentPerformance(PDO $pdo, int $user_id, int $days): array {
                 END
             ) AS win
         FROM trade_results
-        WHERE user_id = ?
-          AND closed_at >= DATE_SUB(NOW(), INTERVAL ? DAY)
+        {$whereUser}
+        closed_at >= DATE_SUB(NOW(), INTERVAL ? DAY)
     ");
-    $stmt->execute([$user_id, $days]);
+    $stmt->execute($params);
     $row = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
 
     $total = (int)($row['total'] ?? 0);
@@ -107,8 +122,15 @@ function calcRecentPerformance(PDO $pdo, int $user_id, int $days): array {
     ];
 }
 
+// Kullanıcıya ait fırsat var mı? (yoksa global göster)
+$hasUserOppsStmt = $pdo->prepare("SELECT COUNT(*) FROM opportunities WHERE user_id = ?");
+$hasUserOppsStmt->execute([$user_id]);
+$hasUserOpps = ((int)$hasUserOppsStmt->fetchColumn()) > 0;
+$statsWhere = $hasUserOpps ? "WHERE user_id = ?" : "";
+$statsParams = $hasUserOpps ? [$user_id] : [];
+
 // İstatistikler
-$stats = $pdo->query("
+$statsStmt = $pdo->prepare("
     SELECT 
         COUNT(*) as total_opportunities,
         AVG(expected_profit_percent) as avg_potential,
@@ -117,21 +139,24 @@ $stats = $pdo->query("
         COUNT(CASE WHEN is_active = 1 THEN 1 END) as active_count,
         AVG(confidence_score) as avg_confidence
     FROM opportunities 
-    WHERE user_id = {$user_id}
-")->fetch(PDO::FETCH_ASSOC);
+    {$statsWhere}
+");
+$statsStmt->execute($statsParams);
+$stats = $statsStmt->fetch(PDO::FETCH_ASSOC);
 
 // Fırsatlar
-$stmt = $pdo->prepare("SELECT * FROM opportunities WHERE user_id = ? AND is_active = 1 ORDER BY confidence_score DESC LIMIT 20");
-$stmt->execute([$user_id]);
-$opportunities = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$oppWhere = $hasUserOpps ? "WHERE user_id = ? AND is_active = 1" : "WHERE is_active = 1";
+$oppStmt = $pdo->prepare("SELECT * FROM opportunities {$oppWhere} ORDER BY confidence_score DESC LIMIT 20");
+$oppStmt->execute($hasUserOpps ? [$user_id] : []);
+$opportunities = $oppStmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Top fırsat
 $top = $opportunities[0] ?? null;
 
 // Performans
-$perf = calcPerformance($pdo, $user_id);
-$recent7 = calcRecentPerformance($pdo, $user_id, 7);
-$recent30 = calcRecentPerformance($pdo, $user_id, 30);
+$perf = calcPerformance($pdo, $hasUserOpps ? $user_id : null);
+$recent7 = calcRecentPerformance($pdo, $hasUserOpps ? $user_id : null, 7);
+$recent30 = calcRecentPerformance($pdo, $hasUserOpps ? $user_id : null, 30);
 
 // Grafik datası (son 10)
 $chartOpps = array_slice($opportunities, 0, 10);
@@ -221,12 +246,20 @@ foreach (array_reverse($chartOpps) as $o) {
             backdrop-filter: blur(10px);
             position:relative;
             overflow:hidden;
+            box-shadow: 0 18px 45px rgba(8, 12, 24, 0.45);
         }
         .card::before{
             content:'';
             position:absolute;top:0;left:0;right:0;height:3px;
             background: linear-gradient(90deg,#3b82f6,#8b5cf6);
             opacity:.85
+        }
+        .card::after{
+            content:'';
+            position:absolute;
+            inset:0;
+            background: radial-gradient(circle at top right, rgba(99,102,241,0.12), transparent 55%);
+            pointer-events:none;
         }
 
         .top-alarm{
@@ -236,7 +269,7 @@ foreach (array_reverse($chartOpps) as $o) {
             padding:26px;
             position:relative;
             overflow:hidden;
-            box-shadow: 0 0 55px rgba(16,185,129,.22);
+            box-shadow: 0 25px 70px rgba(16,185,129,.28);
         }
         .top-alarm::after{
             content:'';
