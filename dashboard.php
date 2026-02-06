@@ -1,10 +1,7 @@
 <?php
 require_once 'config.php';
-if (!isset($_SESSION['user_authenticated']) || $_SESSION['user_authenticated'] !== true) {
-    header('Location: index.php');
-    exit;
-}
-$user_id = 1;
+checkAuth();
+$user_id = getAuthenticatedUserId();
 
 /**
  * "2-3 gün" / "3-5 gün" / "7 gün" gibi timeframe'den gün sayısını yakala.
@@ -77,6 +74,39 @@ function calcPerformance(PDO $pdo, int $user_id): array {
     ];
 }
 
+/**
+ * Son X gün performansı
+ */
+function calcRecentPerformance(PDO $pdo, int $user_id, int $days): array {
+    $stmt = $pdo->prepare("
+        SELECT
+            COUNT(*) AS total,
+            SUM(
+                CASE
+                    WHEN realized_profit_percent > 0 THEN 1
+                    ELSE 0
+                END
+            ) AS win
+        FROM trade_results
+        WHERE user_id = ?
+          AND closed_at >= DATE_SUB(NOW(), INTERVAL ? DAY)
+    ");
+    $stmt->execute([$user_id, $days]);
+    $row = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
+
+    $total = (int)($row['total'] ?? 0);
+    $win = (int)($row['win'] ?? 0);
+    $loss = max(0, $total - $win);
+    $win_rate = $total > 0 ? round(($win / $total) * 100, 1) : 0.0;
+
+    return [
+        'total' => $total,
+        'win' => $win,
+        'loss' => $loss,
+        'win_rate' => $win_rate,
+    ];
+}
+
 // İstatistikler
 $stats = $pdo->query("
     SELECT 
@@ -100,6 +130,8 @@ $top = $opportunities[0] ?? null;
 
 // Performans
 $perf = calcPerformance($pdo, $user_id);
+$recent7 = calcRecentPerformance($pdo, $user_id, 7);
+$recent30 = calcRecentPerformance($pdo, $user_id, 30);
 
 // Grafik datası (son 10)
 $chartOpps = array_slice($opportunities, 0, 10);
@@ -385,11 +417,13 @@ foreach (array_reverse($chartOpps) as $o) {
     <!-- Top row: Alarm + Grafik -->
     <div class="top-row">
         <!-- TOP ALARM -->
-        <?php if (!empty($top) && (int)($top['confidence_score'] ?? 0) >= 70):
+        <?php if (!empty($top)):
             $entry_time = "Bugün";
             $days = extractDaysFromTimeframe($top['timeframe'] ?? '');
             $sellDate = date('d.m.Y', strtotime("+{$days} days"));
             [$riskText, $riskCss] = riskLabel((string)($top['risk_level'] ?? 'medium'));
+            $topConfidence = (int)($top['confidence_score'] ?? 0);
+            $alarmLabel = $topConfidence >= 70 ? 'ULTRA' : ($topConfidence >= 60 ? 'YÜKSEK' : 'ORTA');
         ?>
         <div class="top-alarm">
             <div class="alarm-content">
@@ -425,7 +459,7 @@ foreach (array_reverse($chartOpps) as $o) {
                         </div>
                         <div class="alarm-detail-item">
                             <div class="alarm-detail-label">🔒 GÜVEN</div>
-                            <div class="alarm-detail-value"><?php echo (int)$top['confidence_score']; ?>/100</div>
+                            <div class="alarm-detail-value"><?php echo $topConfidence; ?>/100</div>
                             <div class="alarm-detail-sub">Ortalama: <?php echo number_format((float)($stats['avg_confidence'] ?? 0), 1); ?>/100</div>
                         </div>
                     </div>
@@ -437,16 +471,17 @@ foreach (array_reverse($chartOpps) as $o) {
                     <div class="alarm-side-badge">
                         Kapanan: <?php echo (int)$perf['closed_total']; ?> • ✅ <?php echo (int)$perf['closed_win']; ?> / ❌ <?php echo (int)$perf['closed_loss']; ?>
                     </div>
+                    <div class="alarm-side-badge"><?php echo $alarmLabel; ?> Seviye</div>
                 </div>
             </div>
         </div>
         <?php else: ?>
         <div class="card">
             <div style="font-weight:900;font-size:18px;margin-bottom:10px">🚨 Top Alarm</div>
-            <div style="color:#94a3b8;font-weight:700">70+ güven skorlu fırsat yok. Sistem yeni sinyal arıyor.</div>
+            <div style="color:#94a3b8;font-weight:700">Henüz aktif fırsat yok. Sistem yeni sinyal arıyor.</div>
             <div class="chart-wrap" style="height:200px;margin-top:18px;color:#94a3b8">
                 <div class="terminal-content" style="max-height:none;color:#60a5fa">
-                    <div class="terminal-line system">> Alarm tetiklemek için confidence_score >= 70 gerekiyor.</div>
+                    <div class="terminal-line system">> Scanner çalıştığında fırsatlar burada görünür.</div>
                     <div class="terminal-line">Scanner çalıştığında burası otomatik dolacak.</div>
                 </div>
             </div>
@@ -484,6 +519,16 @@ foreach (array_reverse($chartOpps) as $o) {
             <div class="stat-label">Başarı Oranı</div>
             <div class="stat-value"><?php echo number_format((float)$perf['win_rate'], 1); ?>%</div>
             <div class="stat-change">✅ <?php echo (int)$perf['closed_win']; ?> / ❌ <?php echo (int)$perf['closed_loss']; ?> (Kapanan: <?php echo (int)$perf['closed_total']; ?>)</div>
+        </div>
+        <div class="card">
+            <div class="stat-label">Son 7 Gün</div>
+            <div class="stat-value"><?php echo number_format((float)$recent7['win_rate'], 1); ?>%</div>
+            <div class="stat-change">✅ <?php echo (int)$recent7['win']; ?> / ❌ <?php echo (int)$recent7['loss']; ?> (<?php echo (int)$recent7['total']; ?>)</div>
+        </div>
+        <div class="card">
+            <div class="stat-label">Son 30 Gün</div>
+            <div class="stat-value"><?php echo number_format((float)$recent30['win_rate'], 1); ?>%</div>
+            <div class="stat-change">✅ <?php echo (int)$recent30['win']; ?> / ❌ <?php echo (int)$recent30['loss']; ?> (<?php echo (int)$recent30['total']; ?>)</div>
         </div>
         <div class="card">
             <div class="stat-label">Ortalama Getiri</div>

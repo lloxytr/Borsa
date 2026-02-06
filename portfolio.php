@@ -1,15 +1,10 @@
 <?php
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
-ini_set('log_errors', 1);
-
-echo "<!-- DEBUG START -->";
-
 // portfolio.php - Portfoy Sayfasi (Veritabani Entegreli)
 require_once 'config.php';
 require_once 'api_live.php';
 
-$user_id = 1;
+checkAuth();
+$user_id = getAuthenticatedUserId();
 $theme = 'dark';
 
 // Portföy verilerini veritabanından çek
