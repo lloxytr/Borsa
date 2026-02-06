@@ -1,0 +1,422 @@
+[13-Jan-2026 07:01:43 UTC] PHP Parse error:  syntax error, unexpected 'mysql' (T_STRING), expecting ')' in /home/baraltyz/public_html/config.php on line 59
+[13-Jan-2026 07:01:47 UTC] PHP Parse error:  syntax error, unexpected 'mysql' (T_STRING), expecting ')' in /home/baraltyz/public_html/config.php on line 59
+[13-Jan-2026 07:02:37 UTC] PHP Parse error:  syntax error, unexpected 'mysql' (T_STRING), expecting ')' in /home/baraltyz/public_html/config.php on line 59
+[13-Jan-2026 12:57:23 Europe/Istanbul] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'potential_profit' in 'field list' in /home/baraltyz/public_html/dashboard.php:22
+Stack trace:
+#0 /home/baraltyz/public_html/dashboard.php(22): PDO->query('\r\n    SELECT \r\n...')
+#1 {main}
+  thrown in /home/baraltyz/public_html/dashboard.php on line 22
+[13-Jan-2026 12:57:27 Europe/Istanbul] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'potential_profit' in 'field list' in /home/baraltyz/public_html/dashboard.php:22
+Stack trace:
+#0 /home/baraltyz/public_html/dashboard.php(22): PDO->query('\r\n    SELECT \r\n...')
+#1 {main}
+  thrown in /home/baraltyz/public_html/dashboard.php on line 22
+[13-Jan-2026 12:58:45 Europe/Istanbul] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'user_id' in 'where clause' in /home/baraltyz/public_html/dashboard.php:22
+Stack trace:
+#0 /home/baraltyz/public_html/dashboard.php(22): PDO->query('\r\n    SELECT \r\n...')
+#1 {main}
+  thrown in /home/baraltyz/public_html/dashboard.php on line 22
+[13-Jan-2026 12:58:47 Europe/Istanbul] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'user_id' in 'where clause' in /home/baraltyz/public_html/dashboard.php:22
+Stack trace:
+#0 /home/baraltyz/public_html/dashboard.php(22): PDO->query('\r\n    SELECT \r\n...')
+#1 {main}
+  thrown in /home/baraltyz/public_html/dashboard.php on line 22
+[13-Jan-2026 10:40:00 UTC] PHP Parse error:  syntax error, unexpected '*', expecting end of file in /home/baraltyz/public_html/notification_sender.php on line 13
+[13-Jan-2026 10:40:28 UTC] PHP Parse error:  syntax error, unexpected '*', expecting end of file in /home/baraltyz/public_html/notification_sender.php on line 13
+[13-Jan-2026 13:53:49 Europe/Istanbul] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'is_sold' in 'where clause' in /home/baraltyz/public_html/portfolio.php:10
+Stack trace:
+#0 /home/baraltyz/public_html/portfolio.php(10): PDO->prepare('\r\n    SELECT * ...')
+#1 {main}
+  thrown in /home/baraltyz/public_html/portfolio.php on line 10
+[13-Jan-2026 13:57:16 Europe/Istanbul] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'is_sold' in 'where clause' in /home/baraltyz/public_html/portfolio.php:10
+Stack trace:
+#0 /home/baraltyz/public_html/portfolio.php(10): PDO->prepare('\r\n    SELECT * ...')
+#1 {main}
+  thrown in /home/baraltyz/public_html/portfolio.php on line 10
+[13-Jan-2026 13:57:16 Europe/Istanbul] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'is_sold' in 'where clause' in /home/baraltyz/public_html/portfolio.php:10
+Stack trace:
+#0 /home/baraltyz/public_html/portfolio.php(10): PDO->prepare('\r\n    SELECT * ...')
+#1 {main}
+  thrown in /home/baraltyz/public_html/portfolio.php on line 10
+[13-Jan-2026 13:57:17 Europe/Istanbul] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'is_sold' in 'where clause' in /home/baraltyz/public_html/portfolio.php:10
+Stack trace:
+#0 /home/baraltyz/public_html/portfolio.php(10): PDO->prepare('\r\n    SELECT * ...')
+#1 {main}
+  thrown in /home/baraltyz/public_html/portfolio.php on line 10
+[13-Jan-2026 13:57:17 Europe/Istanbul] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'is_sold' in 'where clause' in /home/baraltyz/public_html/portfolio.php:10
+Stack trace:
+#0 /home/baraltyz/public_html/portfolio.php(10): PDO->prepare('\r\n    SELECT * ...')
+#1 {main}
+  thrown in /home/baraltyz/public_html/portfolio.php on line 10
+[13-Jan-2026 13:57:18 Europe/Istanbul] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'is_sold' in 'where clause' in /home/baraltyz/public_html/portfolio.php:10
+Stack trace:
+#0 /home/baraltyz/public_html/portfolio.php(10): PDO->prepare('\r\n    SELECT * ...')
+#1 {main}
+  thrown in /home/baraltyz/public_html/portfolio.php on line 10
+[13-Jan-2026 13:57:18 Europe/Istanbul] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'is_sold' in 'where clause' in /home/baraltyz/public_html/portfolio.php:10
+Stack trace:
+#0 /home/baraltyz/public_html/portfolio.php(10): PDO->prepare('\r\n    SELECT * ...')
+#1 {main}
+  thrown in /home/baraltyz/public_html/portfolio.php on line 10
+[13-Jan-2026 13:57:18 Europe/Istanbul] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'is_sold' in 'where clause' in /home/baraltyz/public_html/portfolio.php:10
+Stack trace:
+#0 /home/baraltyz/public_html/portfolio.php(10): PDO->prepare('\r\n    SELECT * ...')
+#1 {main}
+  thrown in /home/baraltyz/public_html/portfolio.php on line 10
+[13-Jan-2026 13:57:18 Europe/Istanbul] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'is_sold' in 'where clause' in /home/baraltyz/public_html/portfolio.php:10
+Stack trace:
+#0 /home/baraltyz/public_html/portfolio.php(10): PDO->prepare('\r\n    SELECT * ...')
+#1 {main}
+  thrown in /home/baraltyz/public_html/portfolio.php on line 10
+[13-Jan-2026 13:57:18 Europe/Istanbul] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'is_sold' in 'where clause' in /home/baraltyz/public_html/portfolio.php:10
+Stack trace:
+#0 /home/baraltyz/public_html/portfolio.php(10): PDO->prepare('\r\n    SELECT * ...')
+#1 {main}
+  thrown in /home/baraltyz/public_html/portfolio.php on line 10
+[13-Jan-2026 13:57:19 Europe/Istanbul] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'is_sold' in 'where clause' in /home/baraltyz/public_html/portfolio.php:10
+Stack trace:
+#0 /home/baraltyz/public_html/portfolio.php(10): PDO->prepare('\r\n    SELECT * ...')
+#1 {main}
+  thrown in /home/baraltyz/public_html/portfolio.php on line 10
+[13-Jan-2026 13:57:19 Europe/Istanbul] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'is_sold' in 'where clause' in /home/baraltyz/public_html/portfolio.php:10
+Stack trace:
+#0 /home/baraltyz/public_html/portfolio.php(10): PDO->prepare('\r\n    SELECT * ...')
+#1 {main}
+  thrown in /home/baraltyz/public_html/portfolio.php on line 10
+[13-Jan-2026 13:57:19 Europe/Istanbul] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'is_sold' in 'where clause' in /home/baraltyz/public_html/portfolio.php:10
+Stack trace:
+#0 /home/baraltyz/public_html/portfolio.php(10): PDO->prepare('\r\n    SELECT * ...')
+#1 {main}
+  thrown in /home/baraltyz/public_html/portfolio.php on line 10
+[13-Jan-2026 13:57:19 Europe/Istanbul] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'is_sold' in 'where clause' in /home/baraltyz/public_html/portfolio.php:10
+Stack trace:
+#0 /home/baraltyz/public_html/portfolio.php(10): PDO->prepare('\r\n    SELECT * ...')
+#1 {main}
+  thrown in /home/baraltyz/public_html/portfolio.php on line 10
+[13-Jan-2026 13:57:20 Europe/Istanbul] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'is_sold' in 'where clause' in /home/baraltyz/public_html/portfolio.php:10
+Stack trace:
+#0 /home/baraltyz/public_html/portfolio.php(10): PDO->prepare('\r\n    SELECT * ...')
+#1 {main}
+  thrown in /home/baraltyz/public_html/portfolio.php on line 10
+[13-Jan-2026 13:57:33 Europe/Istanbul] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'is_sold' in 'where clause' in /home/baraltyz/public_html/portfolio.php:10
+Stack trace:
+#0 /home/baraltyz/public_html/portfolio.php(10): PDO->prepare('\r\n    SELECT * ...')
+#1 {main}
+  thrown in /home/baraltyz/public_html/portfolio.php on line 10
+[13-Jan-2026 13:59:10 Europe/Istanbul] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'is_sold' in 'where clause' in /home/baraltyz/public_html/portfolio.php:16
+Stack trace:
+#0 /home/baraltyz/public_html/portfolio.php(16): PDO->prepare('\r\n    SELECT * ...')
+#1 {main}
+  thrown in /home/baraltyz/public_html/portfolio.php on line 16
+[13-Jan-2026 15:48:42 Europe/Istanbul] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'confidence' in 'field list' in /home/baraltyz/public_html/test_db.php:7
+Stack trace:
+#0 /home/baraltyz/public_html/test_db.php(7): PDO->query('SELECT symbol, ...')
+#1 {main}
+  thrown in /home/baraltyz/public_html/test_db.php on line 7
+[14-Jan-2026 05:24:05 UTC] PHP Parse error:  syntax error, unexpected '}', expecting end of file in /home/baraltyz/public_html/api_live.php on line 154
+[14-Jan-2026 05:29:53 UTC] PHP Parse error:  syntax error, unexpected '}', expecting end of file in /home/baraltyz/public_html/api_live.php on line 154
+[14-Jan-2026 05:29:55 UTC] PHP Parse error:  syntax error, unexpected '}', expecting end of file in /home/baraltyz/public_html/api_live.php on line 154
+[14-Jan-2026 05:53:22 UTC] PHP Warning:  Use of undefined constant SITE_NAME - assumed 'SITE_NAME' (this will throw an Error in a future version of PHP) in /home/baraltyz/public_html/index.php on line 47
+[14-Jan-2026 05:53:22 UTC] PHP Warning:  Use of undefined constant SITE_NAME - assumed 'SITE_NAME' (this will throw an Error in a future version of PHP) in /home/baraltyz/public_html/index.php on line 279
+[14-Jan-2026 06:27:22 UTC] PHP Warning:  Use of undefined constant SITE_NAME - assumed 'SITE_NAME' (this will throw an Error in a future version of PHP) in /home/baraltyz/public_html/index.php on line 47
+[14-Jan-2026 06:27:22 UTC] PHP Warning:  Use of undefined constant SITE_NAME - assumed 'SITE_NAME' (this will throw an Error in a future version of PHP) in /home/baraltyz/public_html/index.php on line 279
+[14-Jan-2026 06:31:58 UTC] PHP Warning:  Use of undefined constant SITE_NAME - assumed 'SITE_NAME' (this will throw an Error in a future version of PHP) in /home/baraltyz/public_html/index.php on line 47
+[14-Jan-2026 06:31:58 UTC] PHP Warning:  Use of undefined constant SITE_NAME - assumed 'SITE_NAME' (this will throw an Error in a future version of PHP) in /home/baraltyz/public_html/index.php on line 279
+[14-Jan-2026 06:37:11 UTC] PHP Warning:  Use of undefined constant SITE_NAME - assumed 'SITE_NAME' (this will throw an Error in a future version of PHP) in /home/baraltyz/public_html/index.php on line 47
+[14-Jan-2026 06:37:11 UTC] PHP Warning:  Use of undefined constant SITE_NAME - assumed 'SITE_NAME' (this will throw an Error in a future version of PHP) in /home/baraltyz/public_html/index.php on line 279
+[14-Jan-2026 06:52:44 UTC] PHP Parse error:  syntax error, unexpected end of file in /home/baraltyz/public_html/dashboard.php on line 159
+[14-Jan-2026 06:52:47 UTC] PHP Parse error:  syntax error, unexpected end of file in /home/baraltyz/public_html/dashboard.php on line 159
+[14-Jan-2026 06:55:55 UTC] PHP Warning:  Use of undefined constant SITE_NAME - assumed 'SITE_NAME' (this will throw an Error in a future version of PHP) in /home/baraltyz/public_html/index.php on line 47
+[14-Jan-2026 06:55:55 UTC] PHP Warning:  Use of undefined constant SITE_NAME - assumed 'SITE_NAME' (this will throw an Error in a future version of PHP) in /home/baraltyz/public_html/index.php on line 279
+[14-Jan-2026 06:58:45 UTC] PHP Warning:  Use of undefined constant SITE_NAME - assumed 'SITE_NAME' (this will throw an Error in a future version of PHP) in /home/baraltyz/public_html/index.php on line 47
+[14-Jan-2026 06:58:45 UTC] PHP Warning:  Use of undefined constant SITE_NAME - assumed 'SITE_NAME' (this will throw an Error in a future version of PHP) in /home/baraltyz/public_html/index.php on line 279
+[14-Jan-2026 06:58:45 UTC] PHP Warning:  Use of undefined constant SITE_NAME - assumed 'SITE_NAME' (this will throw an Error in a future version of PHP) in /home/baraltyz/public_html/index.php on line 47
+[14-Jan-2026 06:58:45 UTC] PHP Warning:  Use of undefined constant SITE_NAME - assumed 'SITE_NAME' (this will throw an Error in a future version of PHP) in /home/baraltyz/public_html/index.php on line 279
+[14-Jan-2026 07:00:06 UTC] PHP Warning:  Constant NO_SESSION already defined in /home/baraltyz/public_html/telegram_bot.php on line 3
+[14-Jan-2026 07:15:02 UTC] PHP Warning:  Constant NO_SESSION already defined in /home/baraltyz/public_html/telegram_bot.php on line 3
+[14-Jan-2026 07:30:02 UTC] PHP Warning:  Constant NO_SESSION already defined in /home/baraltyz/public_html/telegram_bot.php on line 3
+[14-Jan-2026 07:31:13 UTC] PHP Fatal error:  Uncaught Error: Undefined constant "SITE_NAME" in /home/baraltyz/public_html/index.php:47
+Stack trace:
+#0 {main}
+  thrown in /home/baraltyz/public_html/index.php on line 47
+[14-Jan-2026 07:31:15 UTC] PHP Fatal error:  Uncaught Error: Undefined constant "SITE_NAME" in /home/baraltyz/public_html/index.php:47
+Stack trace:
+#0 {main}
+  thrown in /home/baraltyz/public_html/index.php on line 47
+[14-Jan-2026 07:45:03 UTC] PHP Warning:  Constant NO_SESSION already defined in /home/baraltyz/public_html/telegram_bot.php on line 3
+[14-Jan-2026 08:00:03 UTC] PHP Warning:  Constant NO_SESSION already defined in /home/baraltyz/public_html/telegram_bot.php on line 3
+[14-Jan-2026 08:07:05 UTC] PHP Fatal error:  Uncaught Error: Undefined constant "SITE_NAME" in /home/baraltyz/public_html/index.php:47
+Stack trace:
+#0 {main}
+  thrown in /home/baraltyz/public_html/index.php on line 47
+[14-Jan-2026 08:07:05 UTC] PHP Fatal error:  Uncaught Error: Undefined constant "SITE_NAME" in /home/baraltyz/public_html/index.php:47
+Stack trace:
+#0 {main}
+  thrown in /home/baraltyz/public_html/index.php on line 47
+[14-Jan-2026 08:15:02 UTC] PHP Warning:  Constant NO_SESSION already defined in /home/baraltyz/public_html/telegram_bot.php on line 3
+[14-Jan-2026 08:30:03 UTC] PHP Warning:  Constant NO_SESSION already defined in /home/baraltyz/public_html/telegram_bot.php on line 3
+[14-Jan-2026 08:37:37 UTC] PHP Fatal error:  Uncaught Error: Undefined constant "SITE_NAME" in /home/baraltyz/public_html/index.php:47
+Stack trace:
+#0 {main}
+  thrown in /home/baraltyz/public_html/index.php on line 47
+[14-Jan-2026 08:37:38 UTC] PHP Fatal error:  Uncaught Error: Undefined constant "SITE_NAME" in /home/baraltyz/public_html/index.php:47
+Stack trace:
+#0 {main}
+  thrown in /home/baraltyz/public_html/index.php on line 47
+[14-Jan-2026 08:45:02 UTC] PHP Warning:  Constant NO_SESSION already defined in /home/baraltyz/public_html/telegram_bot.php on line 3
+[14-Jan-2026 09:00:03 UTC] PHP Warning:  Constant NO_SESSION already defined in /home/baraltyz/public_html/telegram_bot.php on line 3
+[14-Jan-2026 09:15:02 UTC] PHP Warning:  Constant NO_SESSION already defined in /home/baraltyz/public_html/telegram_bot.php on line 3
+[14-Jan-2026 09:30:03 UTC] PHP Warning:  Constant NO_SESSION already defined in /home/baraltyz/public_html/telegram_bot.php on line 3
+[14-Jan-2026 09:36:07 UTC] PHP Fatal error:  Uncaught Error: Undefined constant "SITE_NAME" in /home/baraltyz/public_html/index.php:47
+Stack trace:
+#0 {main}
+  thrown in /home/baraltyz/public_html/index.php on line 47
+[14-Jan-2026 09:45:03 UTC] PHP Warning:  Constant NO_SESSION already defined in /home/baraltyz/public_html/telegram_bot.php on line 3
+[14-Jan-2026 09:55:11 UTC] PHP Warning:  Constant NO_SESSION already defined in /home/baraltyz/public_html/telegram_bot.php on line 3
+[14-Jan-2026 09:55:39 UTC] PHP Warning:  Constant NO_SESSION already defined in /home/baraltyz/public_html/telegram_bot.php on line 3
+[14-Jan-2026 10:00:03 UTC] PHP Warning:  Constant NO_SESSION already defined in /home/baraltyz/public_html/telegram_bot.php on line 3
+[14-Jan-2026 10:07:28 UTC] PHP Fatal error:  Uncaught Error: Undefined constant "SITE_NAME" in /home/baraltyz/public_html/index.php:47
+Stack trace:
+#0 {main}
+  thrown in /home/baraltyz/public_html/index.php on line 47
+[14-Jan-2026 10:07:49 UTC] PHP Fatal error:  Uncaught Error: Undefined constant "SITE_NAME" in /home/baraltyz/public_html/index.php:47
+Stack trace:
+#0 {main}
+  thrown in /home/baraltyz/public_html/index.php on line 47
+[14-Jan-2026 10:21:37 UTC] PHP Fatal error:  Uncaught Error: Undefined constant "SITE_NAME" in /home/baraltyz/public_html/index.php:47
+Stack trace:
+#0 {main}
+  thrown in /home/baraltyz/public_html/index.php on line 47
+[14-Jan-2026 10:32:14 UTC] PHP Warning:  Constant NO_SESSION already defined in /home/baraltyz/public_html/telegram_bot.php on line 3
+[14-Jan-2026 10:32:35 UTC] PHP Warning:  Constant NO_SESSION already defined in /home/baraltyz/public_html/telegram_bot.php on line 3
+[14-Jan-2026 10:37:30 UTC] PHP Warning:  Constant NO_SESSION already defined in /home/baraltyz/public_html/telegram_bot.php on line 3
+[14-Jan-2026 10:37:35 UTC] PHP Warning:  Constant NO_SESSION already defined in /home/baraltyz/public_html/telegram_bot.php on line 3
+[14-Jan-2026 10:38:16 UTC] PHP Warning:  Constant NO_SESSION already defined in /home/baraltyz/public_html/telegram_bot.php on line 3
+[14-Jan-2026 11:00:36 UTC] PHP Fatal error:  Uncaught Error: Undefined constant "SITE_NAME" in /home/baraltyz/public_html/index.php:47
+Stack trace:
+#0 {main}
+  thrown in /home/baraltyz/public_html/index.php on line 47
+[14-Jan-2026 11:24:59 UTC] PHP Fatal error:  Uncaught Error: Undefined constant "SITE_NAME" in /home/baraltyz/public_html/index.php:47
+Stack trace:
+#0 {main}
+  thrown in /home/baraltyz/public_html/index.php on line 47
+[14-Jan-2026 11:40:31 UTC] PHP Fatal error:  Uncaught Error: Undefined constant "SITE_NAME" in /home/baraltyz/public_html/index.php:47
+Stack trace:
+#0 {main}
+  thrown in /home/baraltyz/public_html/index.php on line 47
+[14-Jan-2026 12:00:12 UTC] PHP Fatal error:  Uncaught Error: Undefined constant "SITE_NAME" in /home/baraltyz/public_html/index.php:47
+Stack trace:
+#0 {main}
+  thrown in /home/baraltyz/public_html/index.php on line 47
+[14-Jan-2026 12:00:14 UTC] PHP Fatal error:  Uncaught Error: Undefined constant "SITE_NAME" in /home/baraltyz/public_html/index.php:47
+Stack trace:
+#0 {main}
+  thrown in /home/baraltyz/public_html/index.php on line 47
+[14-Jan-2026 12:08:33 UTC] PHP Fatal error:  Uncaught Error: Undefined constant "SITE_NAME" in /home/baraltyz/public_html/index.php:47
+Stack trace:
+#0 {main}
+  thrown in /home/baraltyz/public_html/index.php on line 47
+[14-Jan-2026 12:24:16 UTC] PHP Fatal error:  Uncaught Error: Undefined constant "SITE_NAME" in /home/baraltyz/public_html/index.php:47
+Stack trace:
+#0 {main}
+  thrown in /home/baraltyz/public_html/index.php on line 47
+[14-Jan-2026 12:24:16 UTC] PHP Fatal error:  Uncaught Error: Undefined constant "SITE_NAME" in /home/baraltyz/public_html/index.php:47
+Stack trace:
+#0 {main}
+  thrown in /home/baraltyz/public_html/index.php on line 47
+[14-Jan-2026 12:24:18 UTC] PHP Fatal error:  Uncaught Error: Undefined constant "SITE_NAME" in /home/baraltyz/public_html/index.php:47
+Stack trace:
+#0 {main}
+  thrown in /home/baraltyz/public_html/index.php on line 47
+[14-Jan-2026 12:24:18 UTC] PHP Fatal error:  Uncaught Error: Undefined constant "SITE_NAME" in /home/baraltyz/public_html/index.php:47
+Stack trace:
+#0 {main}
+  thrown in /home/baraltyz/public_html/index.php on line 47
+[14-Jan-2026 12:24:18 UTC] PHP Fatal error:  Uncaught Error: Undefined constant "SITE_NAME" in /home/baraltyz/public_html/index.php:47
+Stack trace:
+#0 {main}
+  thrown in /home/baraltyz/public_html/index.php on line 47
+[14-Jan-2026 12:24:18 UTC] PHP Fatal error:  Uncaught Error: Undefined constant "SITE_NAME" in /home/baraltyz/public_html/index.php:47
+Stack trace:
+#0 {main}
+  thrown in /home/baraltyz/public_html/index.php on line 47
+[14-Jan-2026 12:36:19 UTC] PHP Fatal error:  Uncaught Error: Undefined constant "SITE_NAME" in /home/baraltyz/public_html/index.php:47
+Stack trace:
+#0 {main}
+  thrown in /home/baraltyz/public_html/index.php on line 47
+[14-Jan-2026 12:51:23 UTC] PHP Fatal error:  Uncaught Error: Undefined constant "SITE_NAME" in /home/baraltyz/public_html/index.php:47
+Stack trace:
+#0 {main}
+  thrown in /home/baraltyz/public_html/index.php on line 47
+[14-Jan-2026 13:27:44 UTC] PHP Fatal error:  Uncaught Error: Undefined constant "SITE_NAME" in /home/baraltyz/public_html/index.php:47
+Stack trace:
+#0 {main}
+  thrown in /home/baraltyz/public_html/index.php on line 47
+[14-Jan-2026 15:37:36 UTC] PHP Fatal error:  Uncaught Error: Undefined constant "SITE_NAME" in /home/baraltyz/public_html/index.php:47
+Stack trace:
+#0 {main}
+  thrown in /home/baraltyz/public_html/index.php on line 47
+[14-Jan-2026 16:20:57 UTC] PHP Fatal error:  Uncaught Error: Undefined constant "SITE_NAME" in /home/baraltyz/public_html/index.php:47
+Stack trace:
+#0 {main}
+  thrown in /home/baraltyz/public_html/index.php on line 47
+[14-Jan-2026 18:19:03 UTC] PHP Fatal error:  Uncaught Error: Undefined constant "SITE_NAME" in /home/baraltyz/public_html/index.php:47
+Stack trace:
+#0 {main}
+  thrown in /home/baraltyz/public_html/index.php on line 47
+[14-Jan-2026 19:22:14 UTC] PHP Fatal error:  Uncaught Error: Undefined constant "SITE_NAME" in /home/baraltyz/public_html/index.php:47
+Stack trace:
+#0 {main}
+  thrown in /home/baraltyz/public_html/index.php on line 47
+[14-Jan-2026 19:37:06 UTC] PHP Fatal error:  Uncaught Error: Undefined constant "SITE_NAME" in /home/baraltyz/public_html/index.php:47
+Stack trace:
+#0 {main}
+  thrown in /home/baraltyz/public_html/index.php on line 47
+[14-Jan-2026 20:05:13 UTC] PHP Fatal error:  Uncaught Error: Undefined constant "SITE_NAME" in /home/baraltyz/public_html/index.php:47
+Stack trace:
+#0 {main}
+  thrown in /home/baraltyz/public_html/index.php on line 47
+[14-Jan-2026 22:41:27 UTC] PHP Fatal error:  Uncaught Error: Undefined constant "SITE_NAME" in /home/baraltyz/public_html/index.php:47
+Stack trace:
+#0 {main}
+  thrown in /home/baraltyz/public_html/index.php on line 47
+[15-Jan-2026 00:24:15 UTC] PHP Fatal error:  Uncaught Error: Undefined constant "SITE_NAME" in /home/baraltyz/public_html/index.php:47
+Stack trace:
+#0 {main}
+  thrown in /home/baraltyz/public_html/index.php on line 47
+[15-Jan-2026 00:24:17 UTC] PHP Fatal error:  Uncaught Error: Undefined constant "SITE_NAME" in /home/baraltyz/public_html/index.php:47
+Stack trace:
+#0 {main}
+  thrown in /home/baraltyz/public_html/index.php on line 47
+[15-Jan-2026 00:49:16 UTC] PHP Fatal error:  Uncaught Error: Undefined constant "SITE_NAME" in /home/baraltyz/public_html/index.php:47
+Stack trace:
+#0 {main}
+  thrown in /home/baraltyz/public_html/index.php on line 47
+[15-Jan-2026 00:49:18 UTC] PHP Fatal error:  Uncaught Error: Undefined constant "SITE_NAME" in /home/baraltyz/public_html/index.php:47
+Stack trace:
+#0 {main}
+  thrown in /home/baraltyz/public_html/index.php on line 47
+[15-Jan-2026 00:49:18 UTC] PHP Fatal error:  Uncaught Error: Undefined constant "SITE_NAME" in /home/baraltyz/public_html/index.php:47
+Stack trace:
+#0 {main}
+  thrown in /home/baraltyz/public_html/index.php on line 47
+[15-Jan-2026 00:49:18 UTC] PHP Fatal error:  Uncaught Error: Undefined constant "SITE_NAME" in /home/baraltyz/public_html/index.php:47
+Stack trace:
+#0 {main}
+  thrown in /home/baraltyz/public_html/index.php on line 47
+[15-Jan-2026 01:17:21 UTC] PHP Fatal error:  Uncaught Error: Undefined constant "SITE_NAME" in /home/baraltyz/public_html/index.php:47
+Stack trace:
+#0 {main}
+  thrown in /home/baraltyz/public_html/index.php on line 47
+[15-Jan-2026 01:22:23 UTC] PHP Fatal error:  Uncaught Error: Undefined constant "SITE_NAME" in /home/baraltyz/public_html/index.php:47
+Stack trace:
+#0 {main}
+  thrown in /home/baraltyz/public_html/index.php on line 47
+[15-Jan-2026 01:34:39 UTC] PHP Fatal error:  Uncaught Error: Undefined constant "SITE_NAME" in /home/baraltyz/public_html/index.php:47
+Stack trace:
+#0 {main}
+  thrown in /home/baraltyz/public_html/index.php on line 47
+[15-Jan-2026 03:05:53 UTC] PHP Fatal error:  Uncaught Error: Undefined constant "SITE_NAME" in /home/baraltyz/public_html/index.php:47
+Stack trace:
+#0 {main}
+  thrown in /home/baraltyz/public_html/index.php on line 47
+[15-Jan-2026 03:05:53 UTC] PHP Fatal error:  Uncaught Error: Undefined constant "SITE_NAME" in /home/baraltyz/public_html/index.php:47
+Stack trace:
+#0 {main}
+  thrown in /home/baraltyz/public_html/index.php on line 47
+[15-Jan-2026 03:05:54 UTC] PHP Fatal error:  Uncaught Error: Undefined constant "SITE_NAME" in /home/baraltyz/public_html/index.php:47
+Stack trace:
+#0 {main}
+  thrown in /home/baraltyz/public_html/index.php on line 47
+[15-Jan-2026 04:21:53 UTC] PHP Fatal error:  Uncaught Error: Undefined constant "SITE_NAME" in /home/baraltyz/public_html/index.php:47
+Stack trace:
+#0 {main}
+  thrown in /home/baraltyz/public_html/index.php on line 47
+[15-Jan-2026 05:11:54 UTC] PHP Fatal error:  Uncaught Error: Undefined constant "SITE_NAME" in /home/baraltyz/public_html/index.php:47
+Stack trace:
+#0 {main}
+  thrown in /home/baraltyz/public_html/index.php on line 47
+[15-Jan-2026 05:39:38 UTC] PHP Fatal error:  Uncaught Error: Undefined constant "SITE_NAME" in /home/baraltyz/public_html/index.php:47
+Stack trace:
+#0 {main}
+  thrown in /home/baraltyz/public_html/index.php on line 47
+[15-Jan-2026 05:39:50 UTC] PHP Fatal error:  Uncaught Error: Undefined constant "SITE_NAME" in /home/baraltyz/public_html/index.php:47
+Stack trace:
+#0 {main}
+  thrown in /home/baraltyz/public_html/index.php on line 47
+[15-Jan-2026 05:40:24 UTC] PHP Fatal error:  Uncaught Error: Undefined constant "SITE_NAME" in /home/baraltyz/public_html/index.php:47
+Stack trace:
+#0 {main}
+  thrown in /home/baraltyz/public_html/index.php on line 47
+[15-Jan-2026 05:49:10 UTC] PHP Fatal error:  Uncaught Error: Undefined constant "SITE_NAME" in /home/baraltyz/public_html/index.php:47
+Stack trace:
+#0 {main}
+  thrown in /home/baraltyz/public_html/index.php on line 47
+[15-Jan-2026 07:03:12 UTC] PHP Fatal error:  Uncaught Error: Undefined constant "SITE_NAME" in /home/baraltyz/public_html/index.php:47
+Stack trace:
+#0 {main}
+  thrown in /home/baraltyz/public_html/index.php on line 47
+[15-Jan-2026 07:03:13 UTC] PHP Fatal error:  Uncaught Error: Undefined constant "SITE_NAME" in /home/baraltyz/public_html/index.php:47
+Stack trace:
+#0 {main}
+  thrown in /home/baraltyz/public_html/index.php on line 47
+[15-Jan-2026 07:14:41 UTC] PHP Fatal error:  Uncaught Error: Undefined constant "SITE_NAME" in /home/baraltyz/public_html/index.php:47
+Stack trace:
+#0 {main}
+  thrown in /home/baraltyz/public_html/index.php on line 47
+[15-Jan-2026 07:14:42 UTC] PHP Fatal error:  Uncaught Error: Undefined constant "SITE_NAME" in /home/baraltyz/public_html/index.php:47
+Stack trace:
+#0 {main}
+  thrown in /home/baraltyz/public_html/index.php on line 47
+[15-Jan-2026 07:22:08 UTC] PHP Fatal error:  Uncaught Error: Undefined constant "SITE_NAME" in /home/baraltyz/public_html/index.php:47
+Stack trace:
+#0 {main}
+  thrown in /home/baraltyz/public_html/index.php on line 47
+[15-Jan-2026 07:45:04 UTC] PHP Fatal error:  Uncaught Error: Undefined constant "SITE_NAME" in /home/baraltyz/public_html/index.php:47
+Stack trace:
+#0 {main}
+  thrown in /home/baraltyz/public_html/index.php on line 47
+[15-Jan-2026 07:52:37 UTC] PHP Fatal error:  Uncaught Error: Undefined constant "SITE_NAME" in /home/baraltyz/public_html/keygenerator.php:60
+Stack trace:
+#0 {main}
+  thrown in /home/baraltyz/public_html/keygenerator.php on line 60
+[15-Jan-2026 08:04:19 UTC] PHP Fatal error:  Uncaught Error: Undefined constant "SITE_NAME" in /home/baraltyz/public_html/index.php:47
+Stack trace:
+#0 {main}
+  thrown in /home/baraltyz/public_html/index.php on line 47
+[15-Jan-2026 08:04:24 UTC] PHP Fatal error:  Uncaught Error: Undefined constant "SITE_NAME" in /home/baraltyz/public_html/keygenerator.php:60
+Stack trace:
+#0 {main}
+  thrown in /home/baraltyz/public_html/keygenerator.php on line 60
+[15-Jan-2026 08:04:24 UTC] PHP Fatal error:  Uncaught Error: Undefined constant "SITE_NAME" in /home/baraltyz/public_html/keygenerator.php:60
+Stack trace:
+#0 {main}
+  thrown in /home/baraltyz/public_html/keygenerator.php on line 60
+[15-Jan-2026 08:04:39 UTC] PHP Fatal error:  Uncaught Error: Undefined constant "SITE_NAME" in /home/baraltyz/public_html/index.php:47
+Stack trace:
+#0 {main}
+  thrown in /home/baraltyz/public_html/index.php on line 47
+[15-Jan-2026 08:04:45 UTC] PHP Fatal error:  Uncaught Error: Undefined constant "SITE_NAME" in /home/baraltyz/public_html/keygenerator.php:60
+Stack trace:
+#0 {main}
+  thrown in /home/baraltyz/public_html/keygenerator.php on line 60
+[20-Jan-2026 09:07:52 Europe/Istanbul] PHP Fatal error:  Uncaught Error: Undefined constant "ADMIN_PASSWORD" in /home/baraltyz/public_html/keygenerator.php:15
+Stack trace:
+#0 {main}
+  thrown in /home/baraltyz/public_html/keygenerator.php on line 15
+[20-Jan-2026 09:08:08 Europe/Istanbul] PHP Fatal error:  Uncaught Error: Undefined constant "ADMIN_PASSWORD" in /home/baraltyz/public_html/keygenerator.php:15
+Stack trace:
+#0 {main}
+  thrown in /home/baraltyz/public_html/keygenerator.php on line 15
+[20-Jan-2026 09:08:23 Europe/Istanbul] PHP Fatal error:  Uncaught Error: Undefined constant "ADMIN_PASSWORD" in /home/baraltyz/public_html/keygenerator.php:15
+Stack trace:
+#0 {main}
+  thrown in /home/baraltyz/public_html/keygenerator.php on line 15
+[20-Jan-2026 09:08:27 Europe/Istanbul] PHP Fatal error:  Uncaught Error: Undefined constant "ADMIN_PASSWORD" in /home/baraltyz/public_html/keygenerator.php:15
+Stack trace:
+#0 {main}
+  thrown in /home/baraltyz/public_html/keygenerator.php on line 15
+[20-Jan-2026 09:08:46 Europe/Istanbul] PHP Fatal error:  Uncaught Error: Undefined constant "ADMIN_PASSWORD" in /home/baraltyz/public_html/keygenerator.php:15
+Stack trace:
+#0 {main}
+  thrown in /home/baraltyz/public_html/keygenerator.php on line 15

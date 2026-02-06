@@ -1,0 +1,20 @@
+Content-type: text/html; charset=UTF-8
+
+2026-01-13 09:00:04 - Cron tarama basladi
+<br />
+<b>Warning</b>:  session_start(): Cannot start session when headers already sent in <b>/home/baraltyz/public_html/config.php</b> on line <b>6</b><br />
+Eski firsatlar temizleniyor...
+Temizlenen: 0 adet
+BIST30 taramasi baslatiliyor...
+Bulunan firsat: 7 adet
+2026-01-13 12:00:15 - Cron tarama basariyla tamamlandi
+---
+Content-type: text/html; charset=UTF-8
+
+2026-01-13 09:30:03 - Cron tarama basladi
+Eski firsatlar temizleniyor...
+Temizlenen: 0 adet
+BIST30 taramasi baslatiliyor...
+Bulunan firsat: 8 adet
+2026-01-13 12:30:19 - Cron tarama basariyla tamamlandi
+---
