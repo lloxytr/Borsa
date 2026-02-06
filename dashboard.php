@@ -1,10 +1,7 @@
 <?php
 require_once 'config.php';
-if (!isset($_SESSION['user_authenticated']) || $_SESSION['user_authenticated'] !== true) {
-    header('Location: index.php');
-    exit;
-}
-$user_id = 1;
+checkAuth();
+$user_id = getAuthenticatedUserId();
 
 /**
  * "2-3 gün" / "3-5 gün" / "7 gün" gibi timeframe'den gün sayısını yakala.
@@ -40,7 +37,14 @@ function riskLabel(string $risk): array {
  * - BUY için target > entry ise "başarılı", değilse "başarısız" sayar (baseline).
  * Not: Gerçek performans için updater mantığına bağlayacağız.
  */
-function calcPerformance(PDO $pdo, int $user_id): array {
+function calcPerformance(PDO $pdo, ?int $user_id): array {
+    $whereUser = '';
+    $params = [];
+    if ($user_id !== null) {
+        $whereUser = 'WHERE user_id = ? AND';
+        $params[] = $user_id;
+    }
+
     // Kapanmış sinyaller: expires_at geçmiş veya is_active=0 (ikisini de sayalım)
     $stmt = $pdo->prepare("
         SELECT
@@ -55,10 +59,10 @@ function calcPerformance(PDO $pdo, int $user_id): array {
             AVG(expected_profit_percent) AS avg_expected,
             AVG(confidence_score) AS avg_conf
         FROM opportunities
-        WHERE user_id = ?
-          AND ( (expires_at IS NOT NULL AND expires_at <= NOW()) OR is_active = 0 )
+        {$whereUser}
+        ( (expires_at IS NOT NULL AND expires_at <= NOW()) OR is_active = 0 )
     ");
-    $stmt->execute([$user_id]);
+    $stmt->execute($params);
     $row = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
 
     $closed_total = (int)($row['closed_total'] ?? 0);
@@ -77,8 +81,56 @@ function calcPerformance(PDO $pdo, int $user_id): array {
     ];
 }
 
+/**
+ * Son X gün performansı
+ */
+function calcRecentPerformance(PDO $pdo, ?int $user_id, int $days): array {
+    $whereUser = '';
+    $params = [];
+    if ($user_id !== null) {
+        $whereUser = 'WHERE user_id = ? AND';
+        $params[] = $user_id;
+    }
+    $params[] = $days;
+
+    $stmt = $pdo->prepare("
+        SELECT
+            COUNT(*) AS total,
+            SUM(
+                CASE
+                    WHEN realized_profit_percent > 0 THEN 1
+                    ELSE 0
+                END
+            ) AS win
+        FROM trade_results
+        {$whereUser}
+        closed_at >= DATE_SUB(NOW(), INTERVAL ? DAY)
+    ");
+    $stmt->execute($params);
+    $row = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
+
+    $total = (int)($row['total'] ?? 0);
+    $win = (int)($row['win'] ?? 0);
+    $loss = max(0, $total - $win);
+    $win_rate = $total > 0 ? round(($win / $total) * 100, 1) : 0.0;
+
+    return [
+        'total' => $total,
+        'win' => $win,
+        'loss' => $loss,
+        'win_rate' => $win_rate,
+    ];
+}
+
+// Kullanıcıya ait fırsat var mı? (yoksa global göster)
+$hasUserOppsStmt = $pdo->prepare("SELECT COUNT(*) FROM opportunities WHERE user_id = ?");
+$hasUserOppsStmt->execute([$user_id]);
+$hasUserOpps = ((int)$hasUserOppsStmt->fetchColumn()) > 0;
+$statsWhere = $hasUserOpps ? "WHERE user_id = ?" : "";
+$statsParams = $hasUserOpps ? [$user_id] : [];
+
 // İstatistikler
-$stats = $pdo->query("
+$statsStmt = $pdo->prepare("
     SELECT 
         COUNT(*) as total_opportunities,
         AVG(expected_profit_percent) as avg_potential,
@@ -87,19 +139,24 @@ $stats = $pdo->query("
         COUNT(CASE WHEN is_active = 1 THEN 1 END) as active_count,
         AVG(confidence_score) as avg_confidence
     FROM opportunities 
-    WHERE user_id = {$user_id}
-")->fetch(PDO::FETCH_ASSOC);
+    {$statsWhere}
+");
+$statsStmt->execute($statsParams);
+$stats = $statsStmt->fetch(PDO::FETCH_ASSOC);
 
 // Fırsatlar
-$stmt = $pdo->prepare("SELECT * FROM opportunities WHERE user_id = ? AND is_active = 1 ORDER BY confidence_score DESC LIMIT 20");
-$stmt->execute([$user_id]);
-$opportunities = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$oppWhere = $hasUserOpps ? "WHERE user_id = ? AND is_active = 1" : "WHERE is_active = 1";
+$oppStmt = $pdo->prepare("SELECT * FROM opportunities {$oppWhere} ORDER BY confidence_score DESC LIMIT 20");
+$oppStmt->execute($hasUserOpps ? [$user_id] : []);
+$opportunities = $oppStmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Top fırsat
 $top = $opportunities[0] ?? null;
 
 // Performans
-$perf = calcPerformance($pdo, $user_id);
+$perf = calcPerformance($pdo, $hasUserOpps ? $user_id : null);
+$recent7 = calcRecentPerformance($pdo, $hasUserOpps ? $user_id : null, 7);
+$recent30 = calcRecentPerformance($pdo, $hasUserOpps ? $user_id : null, 30);
 
 // Grafik datası (son 10)
 $chartOpps = array_slice($opportunities, 0, 10);
@@ -189,12 +246,20 @@ foreach (array_reverse($chartOpps) as $o) {
             backdrop-filter: blur(10px);
             position:relative;
             overflow:hidden;
+            box-shadow: 0 18px 45px rgba(8, 12, 24, 0.45);
         }
         .card::before{
             content:'';
             position:absolute;top:0;left:0;right:0;height:3px;
             background: linear-gradient(90deg,#3b82f6,#8b5cf6);
             opacity:.85
+        }
+        .card::after{
+            content:'';
+            position:absolute;
+            inset:0;
+            background: radial-gradient(circle at top right, rgba(99,102,241,0.12), transparent 55%);
+            pointer-events:none;
         }
 
         .top-alarm{
@@ -204,7 +269,7 @@ foreach (array_reverse($chartOpps) as $o) {
             padding:26px;
             position:relative;
             overflow:hidden;
-            box-shadow: 0 0 55px rgba(16,185,129,.22);
+            box-shadow: 0 25px 70px rgba(16,185,129,.28);
         }
         .top-alarm::after{
             content:'';
@@ -385,11 +450,13 @@ foreach (array_reverse($chartOpps) as $o) {
     <!-- Top row: Alarm + Grafik -->
     <div class="top-row">
         <!-- TOP ALARM -->
-        <?php if (!empty($top) && (int)($top['confidence_score'] ?? 0) >= 70):
+        <?php if (!empty($top)):
             $entry_time = "Bugün";
             $days = extractDaysFromTimeframe($top['timeframe'] ?? '');
             $sellDate = date('d.m.Y', strtotime("+{$days} days"));
             [$riskText, $riskCss] = riskLabel((string)($top['risk_level'] ?? 'medium'));
+            $topConfidence = (int)($top['confidence_score'] ?? 0);
+            $alarmLabel = $topConfidence >= 70 ? 'ULTRA' : ($topConfidence >= 60 ? 'YÜKSEK' : 'ORTA');
         ?>
         <div class="top-alarm">
             <div class="alarm-content">
@@ -425,7 +492,7 @@ foreach (array_reverse($chartOpps) as $o) {
                         </div>
                         <div class="alarm-detail-item">
                             <div class="alarm-detail-label">🔒 GÜVEN</div>
-                            <div class="alarm-detail-value"><?php echo (int)$top['confidence_score']; ?>/100</div>
+                            <div class="alarm-detail-value"><?php echo $topConfidence; ?>/100</div>
                             <div class="alarm-detail-sub">Ortalama: <?php echo number_format((float)($stats['avg_confidence'] ?? 0), 1); ?>/100</div>
                         </div>
                     </div>
@@ -437,16 +504,17 @@ foreach (array_reverse($chartOpps) as $o) {
                     <div class="alarm-side-badge">
                         Kapanan: <?php echo (int)$perf['closed_total']; ?> • ✅ <?php echo (int)$perf['closed_win']; ?> / ❌ <?php echo (int)$perf['closed_loss']; ?>
                     </div>
+                    <div class="alarm-side-badge"><?php echo $alarmLabel; ?> Seviye</div>
                 </div>
             </div>
         </div>
         <?php else: ?>
         <div class="card">
             <div style="font-weight:900;font-size:18px;margin-bottom:10px">🚨 Top Alarm</div>
-            <div style="color:#94a3b8;font-weight:700">70+ güven skorlu fırsat yok. Sistem yeni sinyal arıyor.</div>
+            <div style="color:#94a3b8;font-weight:700">Henüz aktif fırsat yok. Sistem yeni sinyal arıyor.</div>
             <div class="chart-wrap" style="height:200px;margin-top:18px;color:#94a3b8">
                 <div class="terminal-content" style="max-height:none;color:#60a5fa">
-                    <div class="terminal-line system">> Alarm tetiklemek için confidence_score >= 70 gerekiyor.</div>
+                    <div class="terminal-line system">> Scanner çalıştığında fırsatlar burada görünür.</div>
                     <div class="terminal-line">Scanner çalıştığında burası otomatik dolacak.</div>
                 </div>
             </div>
@@ -484,6 +552,16 @@ foreach (array_reverse($chartOpps) as $o) {
             <div class="stat-label">Başarı Oranı</div>
             <div class="stat-value"><?php echo number_format((float)$perf['win_rate'], 1); ?>%</div>
             <div class="stat-change">✅ <?php echo (int)$perf['closed_win']; ?> / ❌ <?php echo (int)$perf['closed_loss']; ?> (Kapanan: <?php echo (int)$perf['closed_total']; ?>)</div>
+        </div>
+        <div class="card">
+            <div class="stat-label">Son 7 Gün</div>
+            <div class="stat-value"><?php echo number_format((float)$recent7['win_rate'], 1); ?>%</div>
+            <div class="stat-change">✅ <?php echo (int)$recent7['win']; ?> / ❌ <?php echo (int)$recent7['loss']; ?> (<?php echo (int)$recent7['total']; ?>)</div>
+        </div>
+        <div class="card">
+            <div class="stat-label">Son 30 Gün</div>
+            <div class="stat-value"><?php echo number_format((float)$recent30['win_rate'], 1); ?>%</div>
+            <div class="stat-change">✅ <?php echo (int)$recent30['win']; ?> / ❌ <?php echo (int)$recent30['loss']; ?> (<?php echo (int)$recent30['total']; ?>)</div>
         </div>
         <div class="card">
             <div class="stat-label">Ortalama Getiri</div>
