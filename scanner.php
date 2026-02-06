@@ -108,6 +108,177 @@ function adjustTargetsByVolatility(float $entry, float $target, float $stop, flo
     ];
 }
 
+/**
+ * Son performansa göre dinamik min confidence eşiği
+ */
+function getDynamicMinConfidence(PDO $pdo, int $user_id): int {
+    try {
+        $stmt = $pdo->prepare("
+            SELECT
+                COUNT(*) AS total,
+                SUM(CASE WHEN realized_profit_percent > 0 THEN 1 ELSE 0 END) AS wins
+            FROM trade_results
+            WHERE user_id = ?
+              AND closed_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+        ");
+        $stmt->execute([$user_id]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
+    } catch (PDOException $e) {
+        return 50;
+    }
+
+    $total = (int)($row['total'] ?? 0);
+    $wins = (int)($row['wins'] ?? 0);
+    if ($total < 8) {
+        return 50;
+    }
+
+    $winRate = $total > 0 ? ($wins / $total) * 100 : 0;
+    if ($winRate < 45) return 60;
+    if ($winRate < 55) return 55;
+    if ($winRate < 65) return 50;
+    return 45;
+}
+
+/**
+ * Volatiliteye göre hedef/stop ayarla
+ */
+function adjustTargetsByVolatility(float $entry, float $target, float $stop, float $volatilityPercent): array {
+    $volatilityPercent = max(0.5, min(12.0, $volatilityPercent));
+    $expectedProfit = max(2.0, min(12.0, $volatilityPercent * 0.9));
+    $stopPercent = max(1.2, min(6.0, $volatilityPercent * 0.6));
+
+    $adjustedTarget = $entry * (1 + ($expectedProfit / 100));
+    $adjustedStop = $entry * (1 - ($stopPercent / 100));
+
+    if ($target > 0) {
+        $adjustedTarget = min($target, $adjustedTarget);
+    }
+    if ($stop > 0) {
+        $adjustedStop = max($stop, $adjustedStop);
+    }
+
+    return [
+        'target' => round($adjustedTarget, 2),
+        'stop' => round($adjustedStop, 2),
+        'expected_profit_percent' => round((($adjustedTarget - $entry) / $entry) * 100, 2)
+    ];
+}
+
+/**
+ * Son performansa göre dinamik min confidence eşiği
+ */
+function getDynamicMinConfidence(PDO $pdo, int $user_id): int {
+    try {
+        $stmt = $pdo->prepare("
+            SELECT
+                COUNT(*) AS total,
+                SUM(CASE WHEN realized_profit_percent > 0 THEN 1 ELSE 0 END) AS wins
+            FROM trade_results
+            WHERE user_id = ?
+              AND closed_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+        ");
+        $stmt->execute([$user_id]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
+    } catch (PDOException $e) {
+        return 50;
+    }
+
+    $total = (int)($row['total'] ?? 0);
+    $wins = (int)($row['wins'] ?? 0);
+    if ($total < 8) {
+        return 50;
+    }
+
+    $winRate = $total > 0 ? ($wins / $total) * 100 : 0;
+    if ($winRate < 45) return 60;
+    if ($winRate < 55) return 55;
+    if ($winRate < 65) return 50;
+    return 45;
+}
+
+/**
+ * Volatiliteye göre hedef/stop ayarla
+ */
+function adjustTargetsByVolatility(float $entry, float $target, float $stop, float $volatilityPercent): array {
+    $volatilityPercent = max(0.5, min(12.0, $volatilityPercent));
+    $expectedProfit = max(2.0, min(12.0, $volatilityPercent * 0.9));
+    $stopPercent = max(1.2, min(6.0, $volatilityPercent * 0.6));
+
+    $adjustedTarget = $entry * (1 + ($expectedProfit / 100));
+    $adjustedStop = $entry * (1 - ($stopPercent / 100));
+
+    if ($target > 0) {
+        $adjustedTarget = min($target, $adjustedTarget);
+    }
+    if ($stop > 0) {
+        $adjustedStop = max($stop, $adjustedStop);
+    }
+
+    return [
+        'target' => round($adjustedTarget, 2),
+        'stop' => round($adjustedStop, 2),
+        'expected_profit_percent' => round((($adjustedTarget - $entry) / $entry) * 100, 2)
+    ];
+}
+
+/**
+ * Son performansa göre dinamik min confidence eşiği
+ */
+function getDynamicMinConfidence(PDO $pdo, int $user_id): int {
+    try {
+        $stmt = $pdo->prepare("
+            SELECT
+                COUNT(*) AS total,
+                SUM(CASE WHEN realized_profit_percent > 0 THEN 1 ELSE 0 END) AS wins
+            FROM trade_results
+            WHERE user_id = ?
+              AND closed_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+        ");
+        $stmt->execute([$user_id]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
+    } catch (PDOException $e) {
+        return 50;
+    }
+
+    $total = (int)($row['total'] ?? 0);
+    $wins = (int)($row['wins'] ?? 0);
+    if ($total < 8) {
+        return 50;
+    }
+
+    $winRate = $total > 0 ? ($wins / $total) * 100 : 0;
+    if ($winRate < 45) return 60;
+    if ($winRate < 55) return 55;
+    if ($winRate < 65) return 50;
+    return 45;
+}
+
+/**
+ * Volatiliteye göre hedef/stop ayarla
+ */
+function adjustTargetsByVolatility(float $entry, float $target, float $stop, float $volatilityPercent): array {
+    $volatilityPercent = max(0.5, min(12.0, $volatilityPercent));
+    $expectedProfit = max(2.0, min(12.0, $volatilityPercent * 0.9));
+    $stopPercent = max(1.2, min(6.0, $volatilityPercent * 0.6));
+
+    $adjustedTarget = $entry * (1 + ($expectedProfit / 100));
+    $adjustedStop = $entry * (1 - ($stopPercent / 100));
+
+    if ($target > 0) {
+        $adjustedTarget = min($target, $adjustedTarget);
+    }
+    if ($stop > 0) {
+        $adjustedStop = max($stop, $adjustedStop);
+    }
+
+    return [
+        'target' => round($adjustedTarget, 2),
+        'stop' => round($adjustedStop, 2),
+        'expected_profit_percent' => round((($adjustedTarget - $entry) / $entry) * 100, 2)
+    ];
+}
+
 logMessage("=== Scanner başlatıldı ===");
 
 // BIST30 Hisseleri
@@ -239,6 +410,24 @@ foreach ($bist30_stocks as $symbol => $name) {
         $timeframe    = (string)($ai_result['timeframe'] ?? '2-3 gün');
 
         $expected_profit_percent = (float)($ai_result['expected_profit_percent'] ?? 0.0);
+
+        $volatilityPercent = $current_price > 0 ? (($high_price - $low_price) / $current_price) * 100 : 0.0;
+        $adjusted = adjustTargetsByVolatility($entry_price, $target_price, $stop_loss, $volatilityPercent);
+        $target_price = $adjusted['target'];
+        $stop_loss = $adjusted['stop'];
+        $expected_profit_percent = $adjusted['expected_profit_percent'];
+
+        $volatilityPercent = $current_price > 0 ? (($high_price - $low_price) / $current_price) * 100 : 0.0;
+        $adjusted = adjustTargetsByVolatility($entry_price, $target_price, $stop_loss, $volatilityPercent);
+        $target_price = $adjusted['target'];
+        $stop_loss = $adjusted['stop'];
+        $expected_profit_percent = $adjusted['expected_profit_percent'];
+
+        $volatilityPercent = $current_price > 0 ? (($high_price - $low_price) / $current_price) * 100 : 0.0;
+        $adjusted = adjustTargetsByVolatility($entry_price, $target_price, $stop_loss, $volatilityPercent);
+        $target_price = $adjusted['target'];
+        $stop_loss = $adjusted['stop'];
+        $expected_profit_percent = $adjusted['expected_profit_percent'];
 
         $volatilityPercent = $current_price > 0 ? (($high_price - $low_price) / $current_price) * 100 : 0.0;
         $adjusted = adjustTargetsByVolatility($entry_price, $target_price, $stop_loss, $volatilityPercent);
