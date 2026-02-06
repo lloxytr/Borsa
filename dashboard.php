@@ -417,11 +417,13 @@ foreach (array_reverse($chartOpps) as $o) {
     <!-- Top row: Alarm + Grafik -->
     <div class="top-row">
         <!-- TOP ALARM -->
-        <?php if (!empty($top) && (int)($top['confidence_score'] ?? 0) >= 70):
+        <?php if (!empty($top)):
             $entry_time = "Bugün";
             $days = extractDaysFromTimeframe($top['timeframe'] ?? '');
             $sellDate = date('d.m.Y', strtotime("+{$days} days"));
             [$riskText, $riskCss] = riskLabel((string)($top['risk_level'] ?? 'medium'));
+            $topConfidence = (int)($top['confidence_score'] ?? 0);
+            $alarmLabel = $topConfidence >= 70 ? 'ULTRA' : ($topConfidence >= 60 ? 'YÜKSEK' : 'ORTA');
         ?>
         <div class="top-alarm">
             <div class="alarm-content">
@@ -457,7 +459,7 @@ foreach (array_reverse($chartOpps) as $o) {
                         </div>
                         <div class="alarm-detail-item">
                             <div class="alarm-detail-label">🔒 GÜVEN</div>
-                            <div class="alarm-detail-value"><?php echo (int)$top['confidence_score']; ?>/100</div>
+                            <div class="alarm-detail-value"><?php echo $topConfidence; ?>/100</div>
                             <div class="alarm-detail-sub">Ortalama: <?php echo number_format((float)($stats['avg_confidence'] ?? 0), 1); ?>/100</div>
                         </div>
                     </div>
@@ -469,16 +471,17 @@ foreach (array_reverse($chartOpps) as $o) {
                     <div class="alarm-side-badge">
                         Kapanan: <?php echo (int)$perf['closed_total']; ?> • ✅ <?php echo (int)$perf['closed_win']; ?> / ❌ <?php echo (int)$perf['closed_loss']; ?>
                     </div>
+                    <div class="alarm-side-badge"><?php echo $alarmLabel; ?> Seviye</div>
                 </div>
             </div>
         </div>
         <?php else: ?>
         <div class="card">
             <div style="font-weight:900;font-size:18px;margin-bottom:10px">🚨 Top Alarm</div>
-            <div style="color:#94a3b8;font-weight:700">70+ güven skorlu fırsat yok. Sistem yeni sinyal arıyor.</div>
+            <div style="color:#94a3b8;font-weight:700">Henüz aktif fırsat yok. Sistem yeni sinyal arıyor.</div>
             <div class="chart-wrap" style="height:200px;margin-top:18px;color:#94a3b8">
                 <div class="terminal-content" style="max-height:none;color:#60a5fa">
-                    <div class="terminal-line system">> Alarm tetiklemek için confidence_score >= 70 gerekiyor.</div>
+                    <div class="terminal-line system">> Scanner çalıştığında fırsatlar burada görünür.</div>
                     <div class="terminal-line">Scanner çalıştığında burası otomatik dolacak.</div>
                 </div>
             </div>

@@ -73,14 +73,14 @@ function getDynamicMinConfidence(PDO $pdo, int $user_id): int {
     $total = (int)($row['total'] ?? 0);
     $wins = (int)($row['wins'] ?? 0);
     if ($total < 8) {
-        return 55;
+        return 50;
     }
 
     $winRate = $total > 0 ? ($wins / $total) * 100 : 0;
-    if ($winRate < 45) return 70;
-    if ($winRate < 55) return 65;
-    if ($winRate < 65) return 60;
-    return 55;
+    if ($winRate < 45) return 60;
+    if ($winRate < 55) return 55;
+    if ($winRate < 65) return 50;
+    return 45;
 }
 
 /**
