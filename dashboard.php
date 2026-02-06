@@ -123,40 +123,63 @@ function calcRecentPerformance(PDO $pdo, ?int $user_id, int $days): array {
 }
 
 // Kullanıcıya ait fırsat var mı? (yoksa global göster)
-$hasUserOppsStmt = $pdo->prepare("SELECT COUNT(*) FROM opportunities WHERE user_id = ?");
-$hasUserOppsStmt->execute([$user_id]);
-$hasUserOpps = ((int)$hasUserOppsStmt->fetchColumn()) > 0;
-$statsWhere = $hasUserOpps ? "WHERE user_id = ?" : "";
-$statsParams = $hasUserOpps ? [$user_id] : [];
+$hasUserOpps = false;
+$stats = [
+    'total_opportunities' => 0,
+    'avg_potential' => 0,
+    'max_potential' => 0,
+    'today_count' => 0,
+    'active_count' => 0,
+    'avg_confidence' => 0,
+];
+$opportunities = [];
 
-// İstatistikler
-$statsStmt = $pdo->prepare("
-    SELECT 
-        COUNT(*) as total_opportunities,
-        AVG(expected_profit_percent) as avg_potential,
-        MAX(expected_profit_percent) as max_potential,
-        COUNT(CASE WHEN created_at > DATE_SUB(NOW(), INTERVAL 24 HOUR) THEN 1 END) as today_count,
-        COUNT(CASE WHEN is_active = 1 THEN 1 END) as active_count,
-        AVG(confidence_score) as avg_confidence
-    FROM opportunities 
-    {$statsWhere}
-");
-$statsStmt->execute($statsParams);
-$stats = $statsStmt->fetch(PDO::FETCH_ASSOC);
+try {
+    $hasUserOppsStmt = $pdo->prepare("SELECT COUNT(*) FROM opportunities WHERE user_id = ?");
+    $hasUserOppsStmt->execute([$user_id]);
+    $hasUserOpps = ((int)$hasUserOppsStmt->fetchColumn()) > 0;
 
-// Fırsatlar
-$oppWhere = $hasUserOpps ? "WHERE user_id = ? AND is_active = 1" : "WHERE is_active = 1";
-$oppStmt = $pdo->prepare("SELECT * FROM opportunities {$oppWhere} ORDER BY confidence_score DESC LIMIT 20");
-$oppStmt->execute($hasUserOpps ? [$user_id] : []);
-$opportunities = $oppStmt->fetchAll(PDO::FETCH_ASSOC);
+    $statsWhere = $hasUserOpps ? "WHERE user_id = ?" : "";
+    $statsParams = $hasUserOpps ? [$user_id] : [];
+
+    // İstatistikler
+    $statsStmt = $pdo->prepare("
+        SELECT 
+            COUNT(*) as total_opportunities,
+            AVG(expected_profit_percent) as avg_potential,
+            MAX(expected_profit_percent) as max_potential,
+            COUNT(CASE WHEN created_at > DATE_SUB(NOW(), INTERVAL 24 HOUR) THEN 1 END) as today_count,
+            COUNT(CASE WHEN is_active = 1 THEN 1 END) as active_count,
+            AVG(confidence_score) as avg_confidence
+        FROM opportunities 
+        {$statsWhere}
+    ");
+    $statsStmt->execute($statsParams);
+    $stats = $statsStmt->fetch(PDO::FETCH_ASSOC) ?: $stats;
+
+    // Fırsatlar
+    $oppWhere = $hasUserOpps ? "WHERE user_id = ? AND is_active = 1" : "WHERE is_active = 1";
+    $oppStmt = $pdo->prepare("SELECT * FROM opportunities {$oppWhere} ORDER BY confidence_score DESC LIMIT 20");
+    $oppStmt->execute($hasUserOpps ? [$user_id] : []);
+    $opportunities = $oppStmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (Throwable $e) {
+    error_log("Dashboard data load error: " . $e->getMessage());
+}
 
 // Top fırsat
 $top = $opportunities[0] ?? null;
 
 // Performans
-$perf = calcPerformance($pdo, $hasUserOpps ? $user_id : null);
-$recent7 = calcRecentPerformance($pdo, $hasUserOpps ? $user_id : null, 7);
-$recent30 = calcRecentPerformance($pdo, $hasUserOpps ? $user_id : null, 30);
+try {
+    $perf = calcPerformance($pdo, $hasUserOpps ? $user_id : null);
+    $recent7 = calcRecentPerformance($pdo, $hasUserOpps ? $user_id : null, 7);
+    $recent30 = calcRecentPerformance($pdo, $hasUserOpps ? $user_id : null, 30);
+} catch (Throwable $e) {
+    error_log("Dashboard performance error: " . $e->getMessage());
+    $perf = ['closed_total' => 0, 'closed_win' => 0, 'closed_loss' => 0, 'win_rate' => 0, 'avg_expected' => 0, 'avg_conf' => 0];
+    $recent7 = ['total' => 0, 'win' => 0, 'loss' => 0, 'win_rate' => 0];
+    $recent30 = ['total' => 0, 'win' => 0, 'loss' => 0, 'win_rate' => 0];
+}
 
 // Grafik datası (son 10)
 $chartOpps = array_slice($opportunities, 0, 10);
