@@ -157,6 +157,7 @@ function runSend(PDO $pdo, int $LOOKBACK_HOURS, int $LIMIT_OPPS, int $SPAM_SECON
             $reason = tg((string)($opp['analysis_reason'] ?? 'Teknik sinyal'));
 
             $emoji = $conf >= 80 ? "🔥" : ($conf >= 70 ? "🟢" : "⚡");
+            $quality = $conf >= 80 ? "ULTRA" : ($conf >= 70 ? "YÜKSEK" : "ORTA");
 
             $message =
                 "{$emoji} *ALIM ZAMANI – {$symbol}*\n\n" .
@@ -168,6 +169,7 @@ function runSend(PDO $pdo, int $LOOKBACK_HOURS, int $LIMIT_OPPS, int $SPAM_SECON
                 "📈 Beklenen Getiri: *+{$profit}%*\n" .
                 "⏳ *Süre:* {$time}\n" .
                 "🔒 *Güven:* {$conf} / 100\n" .
+                "✅ *Kalite:* {$quality}\n" .
                 "⚠️ Risk: *{$risk}*\n\n" .
                 "📊 *Sebep:*\n{$reason}\n\n" .
                 "👉 *Plan:* Al → Bekle → Hedefte Sat\n\n" .

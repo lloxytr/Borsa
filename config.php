@@ -56,6 +56,26 @@ if (!defined('NO_SESSION') || NO_SESSION !== true) {
 }
 
 /**
+ * Basit auth kontrolü (sayfa koruması için)
+ */
+function checkAuth(): void {
+    if (!isset($_SESSION['user_authenticated']) || $_SESSION['user_authenticated'] !== true) {
+        header('Location: index.php');
+        exit;
+    }
+}
+
+/**
+ * Oturumdan user_id çek (yoksa 1)
+ */
+function getAuthenticatedUserId(): int {
+    if (isset($_SESSION['user_id'])) {
+        return (int)$_SESSION['user_id'];
+    }
+    return 1;
+}
+
+/**
  * Veritabanı Bilgileri (KENDİ BİLGİLERİNİ GİR)
  */
 if (!defined('DB_HOST')) define('DB_HOST', 'localhost');
