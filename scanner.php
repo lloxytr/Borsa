@@ -51,6 +51,95 @@ function buildSignalHash(string $symbol, string $action, float $entry, float $ta
     return hash('sha256', $raw);
 }
 
+/**
+ * Son performansa göre dinamik min confidence eşiği
+ */
+function getDynamicMinConfidence(PDO $pdo, int $user_id): int {
+    try {
+        $stmt = $pdo->prepare("
+            SELECT
+                COUNT(*) AS total,
+                SUM(CASE WHEN realized_profit_percent > 0 THEN 1 ELSE 0 END) AS wins
+            FROM trade_results
+            WHERE user_id = ?
+              AND closed_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+        ");
+        $stmt->execute([$user_id]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
+    } catch (PDOException $e) {
+        return 50;
+    }
+
+    $total = (int)($row['total'] ?? 0);
+    $wins = (int)($row['wins'] ?? 0);
+    if ($total < 8) {
+        return 50;
+    }
+
+    $winRate = $total > 0 ? ($wins / $total) * 100 : 0;
+    if ($winRate < 45) return 60;
+    if ($winRate < 55) return 55;
+    if ($winRate < 65) return 50;
+    return 45;
+}
+
+/**
+ * Volatiliteye göre hedef/stop ayarla
+ */
+function adjustTargetsByVolatility(float $entry, float $target, float $stop, float $volatilityPercent): array {
+    $volatilityPercent = max(0.5, min(12.0, $volatilityPercent));
+    $expectedProfit = max(2.0, min(12.0, $volatilityPercent * 0.9));
+    $stopPercent = max(1.2, min(6.0, $volatilityPercent * 0.6));
+
+    $adjustedTarget = $entry * (1 + ($expectedProfit / 100));
+    $adjustedStop = $entry * (1 - ($stopPercent / 100));
+
+    if ($target > 0) {
+        $adjustedTarget = min($target, $adjustedTarget);
+    }
+    if ($stop > 0) {
+        $adjustedStop = max($stop, $adjustedStop);
+    }
+
+    return [
+        'target' => round($adjustedTarget, 2),
+        'stop' => round($adjustedStop, 2),
+        'expected_profit_percent' => round((($adjustedTarget - $entry) / $entry) * 100, 2)
+    ];
+}
+
+/**
+ * Son X gün trend eğimi (yüzde değişim)
+ * Veri yoksa null döner.
+ */
+function getTrendSlope(PDO $pdo, string $symbol, int $days = 7): ?float {
+    try {
+        $stmt = $pdo->prepare("
+            SELECT close
+            FROM price_history
+            WHERE symbol = ?
+            ORDER BY date DESC
+            LIMIT ?
+        ");
+        $stmt->execute([$symbol, $days]);
+        $rows = $stmt->fetchAll(PDO::FETCH_COLUMN);
+    } catch (PDOException $e) {
+        return null;
+    }
+
+    if (!$rows || count($rows) < 2) {
+        return null;
+    }
+
+    $latest = (float)$rows[0];
+    $oldest = (float)$rows[count($rows) - 1];
+    if ($oldest <= 0) {
+        return null;
+    }
+
+    return (($latest - $oldest) / $oldest) * 100;
+}
+
 logMessage("=== Scanner başlatıldı ===");
 
 // BIST30 Hisseleri
@@ -89,6 +178,8 @@ $bist30_stocks = [
 
 $opportunities_found = 0;
 $user_id = 1;
+$minConfidence = getDynamicMinConfidence($pdo, $user_id);
+logMessage("Dinamik min güven eşiği: {$minConfidence}");
 
 if (!isset($pdo)) {
     logMessage("HATA: PDO bağlantısı yok (config.php).");
@@ -164,9 +255,17 @@ foreach ($bist30_stocks as $symbol => $name) {
         // DB’de confidence_score NOT NULL
         $confidence_score = (int)($ai_result['confidence_score'] ?? $ai_result['confidence'] ?? 0);
 
-        // min filtre
-        if ($confidence_score < 50) {
+        // min filtre (dinamik)
+        if ($confidence_score < $minConfidence) {
             logMessage("→ Düşük güven skoru: {$symbol} ({$confidence_score}%)");
+            usleep(400000);
+            continue;
+        }
+
+        // Kısa trend filtresi (düşüş trendinde zayıf sinyali ele)
+        $trendSlope = getTrendSlope($pdo, $symbol, 7);
+        if ($trendSlope !== null && $trendSlope < -2.5 && $confidence_score < 75) {
+            logMessage("→ Negatif trend filtresi: {$symbol} (7g eğim {$trendSlope}%)");
             usleep(400000);
             continue;
         }
@@ -180,6 +279,17 @@ foreach ($bist30_stocks as $symbol => $name) {
         $timeframe    = (string)($ai_result['timeframe'] ?? '2-3 gün');
 
         $expected_profit_percent = (float)($ai_result['expected_profit_percent'] ?? 0.0);
+
+        $volatilityPercent = $current_price > 0 ? (($high_price - $low_price) / $current_price) * 100 : 0.0;
+        if ($volatilityPercent > 9.5 && $confidence_score < 75) {
+            logMessage("→ Aşırı volatilite filtresi: {$symbol} (vol={$volatilityPercent}%)");
+            usleep(400000);
+            continue;
+        }
+        $adjusted = adjustTargetsByVolatility($entry_price, $target_price, $stop_loss, $volatilityPercent);
+        $target_price = $adjusted['target'];
+        $stop_loss = $adjusted['stop'];
+        $expected_profit_percent = $adjusted['expected_profit_percent'];
 
         // tablo kolonları
         $risk_level = normalizeRiskLevel((string)($ai_result['risk_level'] ?? 'medium'));

@@ -213,6 +213,13 @@ function analyzeStockAdvanced($symbol, $current_data, $historical_prices) {
     
     $reason = !empty($reasons) ? implode(". ", $reasons) . "." : "Teknik analiz tamamlandı.";
     
+    $trendState = 'neutral';
+    if ($current_price > $sma20 && $sma20 > $sma50) {
+        $trendState = 'bullish';
+    } elseif ($current_price < $sma20 && $sma20 < $sma50) {
+        $trendState = 'bearish';
+    }
+
     return [
         'symbol' => $symbol,
         'confidence_score' => round($score),
@@ -221,6 +228,7 @@ function analyzeStockAdvanced($symbol, $current_data, $historical_prices) {
         'entry_price' => $current_price,
         'stop_loss' => round($current_price * 0.95, 2),
         'reason' => $reason,
+        'trend_state' => $trendState,
         'indicators' => [
             'rsi' => $rsi,
             'macd' => $macd['macd'],
