@@ -57,7 +57,8 @@ function analyzeStockWithHistory($symbol, $current_data) {
         'risk_level' => $risk_level,
         'timeframe' => $timeframe,
         'reason' => $analysis['reason'],
-        'indicators' => $analysis['indicators']
+        'indicators' => $analysis['indicators'],
+        'trend_state' => $analysis['trend_state'] ?? null
     ];
 }
 
@@ -100,7 +101,8 @@ function analyzeStockBasic($data) {
         'confidence_score' => $confidence_score,
         'risk_level' => $risk_level,
         'timeframe' => $timeframe,
-        'reason' => $reason
+        'reason' => $reason,
+        'trend_state' => $trend
     ];
 }
 
