@@ -206,13 +206,15 @@ function getStockData(string $symbol, bool $use_cache = true): array {
     return $data;
 }
 
-// ===== Test Endpoint =====
-if (isset($_GET['test'], $_GET['symbol'])) {
-    header('Content-Type: application/json; charset=utf-8');
-    echo json_encode(getStockData($_GET['symbol'], true), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
-    exit;
-}
+if (basename(__FILE__) === basename($_SERVER['SCRIPT_FILENAME'] ?? '')) {
+    // ===== Test Endpoint =====
+    if (isset($_GET['test'], $_GET['symbol'])) {
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode(getStockData($_GET['symbol'], true), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+        exit;
+    }
 
-// Eğer doğrudan açıldıysa mini bilgi:
-header('Content-Type: text/plain; charset=utf-8');
-echo "OK. Test: api_live.php?test=1&symbol=THYAO\n";
+    // Eğer doğrudan açıldıysa mini bilgi:
+    header('Content-Type: text/plain; charset=utf-8');
+    echo "OK. Test: api_live.php?test=1&symbol=THYAO\n";
+}
