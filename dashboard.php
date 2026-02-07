@@ -133,6 +133,7 @@ $stats = [
     'avg_confidence' => 0,
 ];
 $opportunities = [];
+$topDaily = [];
 
 try {
     $hasUserOppsStmt = $pdo->prepare("SELECT COUNT(*) FROM opportunities WHERE user_id = ?");
@@ -162,6 +163,18 @@ try {
     $oppStmt = $pdo->prepare("SELECT * FROM opportunities {$oppWhere} ORDER BY confidence_score DESC LIMIT 20");
     $oppStmt->execute($hasUserOpps ? [$user_id] : []);
     $opportunities = $oppStmt->fetchAll(PDO::FETCH_ASSOC);
+
+    $dailyWhere = $hasUserOpps ? "WHERE user_id = ? AND" : "WHERE";
+    $dailyParams = $hasUserOpps ? [$user_id] : [];
+    $dailyStmt = $pdo->prepare("
+        SELECT *
+        FROM opportunities
+        {$dailyWhere} created_at >= CURDATE()
+        ORDER BY confidence_score DESC, expected_profit_percent DESC
+        LIMIT 3
+    ");
+    $dailyStmt->execute($dailyParams);
+    $topDaily = $dailyStmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (Throwable $e) {
     error_log("Dashboard data load error: " . $e->getMessage());
 }
@@ -319,6 +332,22 @@ $newsSources = [
             border:1px solid rgba(59,130,246,.25);
             background:rgba(15,23,42,.55);
             color:#cbd5e1;font-size:12px;font-weight:700
+        }
+
+        .action-button{
+            display:inline-flex;align-items:center;gap:8px;
+            padding:10px 16px;border-radius:14px;
+            border:1px solid rgba(99,102,241,.45);
+            background: linear-gradient(135deg, rgba(79,70,229,.95), rgba(14,165,233,.9));
+            color:#fff;font-size:13px;font-weight:800;
+            text-decoration:none;
+            box-shadow: 0 16px 32px rgba(59,130,246,.35);
+            transition: transform .2s ease, box-shadow .2s ease, filter .2s ease;
+        }
+        .action-button:hover{
+            transform: translateY(-1px);
+            box-shadow: 0 22px 50px rgba(59,130,246,.45);
+            filter: brightness(1.05);
         }
 
         .action-button{
@@ -770,6 +799,35 @@ $newsSources = [
         </div>
     </div>
 
+    <div class="card" style="margin-bottom:22px">
+        <div class="section-header" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+            <div class="section-title">🏆 Günün En İyi 3 Hissesi</div>
+            <span class="chip">Bugün seçilenler</span>
+        </div>
+        <?php if (empty($topDaily)): ?>
+            <div class="no-data">
+                <div class="no-data-icon">📌</div>
+                <h3 style="margin-bottom: 10px; font-weight:900;">Bugün için seçim yok</h3>
+                <p>Yeni sinyal üretildiğinde burada ilk 3 hisse gösterilecek.</p>
+            </div>
+        <?php else: ?>
+            <div class="news-grid">
+                <?php foreach ($topDaily as $idx => $daily): ?>
+                    <div class="news-card">
+                        <div class="news-title">#<?php echo ($idx + 1); ?> <?php echo safe((string)$daily['symbol']); ?></div>
+                        <div class="news-desc"><?php echo safe((string)($daily['name'] ?? '')); ?></div>
+                        <div class="stat-change" style="margin-bottom:8px">
+                            +<?php echo number_format((float)($daily['expected_profit_percent'] ?? 0), 2); ?>% beklenen
+                        </div>
+                        <div class="news-link" style="color:#cbd5e1">
+                            Güven: <?php echo (int)($daily['confidence_score'] ?? 0); ?>/100
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        <?php endif; ?>
+    </div>
+
     <div class="card" id="news" style="margin-top:22px">
         <div class="section-header" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
             <div class="section-title">🗞️ Ekonomi Haberleri</div>
@@ -801,7 +859,7 @@ $newsSources = [
                 <div class="no-data">
                     <div class="no-data-icon">📭</div>
                     <h3 style="margin-bottom: 10px; font-weight:900;">Henüz fırsat bulunamadı</h3>
-                    <p>Scanner otomatik olarak BIST30 hisselerini tarayacak.</p>
+                    <p>Scanner otomatik olarak BIST200 hisselerini tarayacak.</p>
                 </div>
             <?php else: ?>
                 <?php foreach (array_slice($opportunities, 0, 10) as $opp):
