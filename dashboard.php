@@ -202,6 +202,34 @@ foreach (array_reverse($chartOpps) as $o) {
     $chartProfit[] = (float)($o['expected_profit_percent'] ?? 0);
     $chartConf[] = (int)($o['confidence_score'] ?? 0);
 }
+
+$newsSources = [
+    [
+        'title' => 'Bloomberg HT',
+        'url' => 'https://www.bloomberght.com/',
+        'desc' => 'Piyasa haberleri ve ekonomi gündemi.'
+    ],
+    [
+        'title' => 'Foreks',
+        'url' => 'https://www.foreks.com/',
+        'desc' => 'BIST ve ekonomi haber akışı.'
+    ],
+    [
+        'title' => 'Investing Türkiye',
+        'url' => 'https://tr.investing.com/news/economy',
+        'desc' => 'Küresel ekonomi ve piyasa gelişmeleri.'
+    ],
+    [
+        'title' => 'TCMB Duyurular',
+        'url' => 'https://www.tcmb.gov.tr/wps/wcm/connect/TR/TCMB+TR/Main+Menu/Duyurular',
+        'desc' => 'Merkez Bankası resmi duyuruları.'
+    ],
+    [
+        'title' => 'TÜİK',
+        'url' => 'https://data.tuik.gov.tr/',
+        'desc' => 'Resmi makroekonomik istatistikler.'
+    ],
+];
 ?>
 <!DOCTYPE html>
 <html lang="tr">
@@ -261,7 +289,20 @@ foreach (array_reverse($chartOpps) as $o) {
             -webkit-background-clip:text;-webkit-text-fill-color:transparent
         }
         .logo-text p{font-size:12px;color:#94a3b8;margin-top:2px}
-        .header-right{display:flex;align-items:center;gap:12px}
+        .header-right{display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:flex-end}
+        .nav-links{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+        .nav-link{
+            text-decoration:none;color:#e2e8f0;font-size:13px;font-weight:700;
+            padding:8px 12px;border-radius:999px;
+            border:1px solid rgba(148,163,184,.2);
+            background:rgba(15,23,42,.35);
+            transition:.25s ease;
+        }
+        .nav-link:hover{
+            transform:translateY(-2px);
+            border-color:rgba(59,130,246,.6);
+            box-shadow:0 10px 25px rgba(59,130,246,.2)
+        }
         .primary-actions{display:flex;align-items:center;gap:10px}
         .live-badge{
             display:flex;align-items:center;gap:8px;padding:8px 14px;
@@ -278,6 +319,22 @@ foreach (array_reverse($chartOpps) as $o) {
             border:1px solid rgba(59,130,246,.25);
             background:rgba(15,23,42,.55);
             color:#cbd5e1;font-size:12px;font-weight:700
+        }
+
+        .action-button{
+            display:inline-flex;align-items:center;gap:8px;
+            padding:10px 16px;border-radius:14px;
+            border:1px solid rgba(99,102,241,.45);
+            background: linear-gradient(135deg, rgba(79,70,229,.95), rgba(14,165,233,.9));
+            color:#fff;font-size:13px;font-weight:800;
+            text-decoration:none;
+            box-shadow: 0 16px 32px rgba(59,130,246,.35);
+            transition: transform .2s ease, box-shadow .2s ease, filter .2s ease;
+        }
+        .action-button:hover{
+            transform: translateY(-1px);
+            box-shadow: 0 22px 50px rgba(59,130,246,.45);
+            filter: brightness(1.05);
         }
 
         .action-button{
@@ -508,6 +565,13 @@ foreach (array_reverse($chartOpps) as $o) {
         .terminal-line.system{color:#60a5fa}
         .terminal-line.success{color:#10b981}
         .terminal-line.warning{color:#f59e0b}
+        .news-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}
+        .news-card{padding:18px;border-radius:16px;border:1px solid rgba(148,163,184,.12);background:rgba(12,18,33,.6);box-shadow:0 16px 40px rgba(2,6,23,.4);transition:.25s ease}
+        .news-card:hover{transform:translateY(-3px);border-color:rgba(59,130,246,.5)}
+        .news-title{font-size:15px;font-weight:900;margin-bottom:8px}
+        .news-desc{font-size:12.5px;color:#94a3b8;margin-bottom:12px;line-height:1.5}
+        .news-link{display:inline-flex;align-items:center;gap:8px;font-size:12.5px;font-weight:700;color:#38bdf8;text-decoration:none}
+        .news-link:hover{text-decoration:underline}
 
         .no-data{text-align:center;padding:54px 20px;color:#94a3b8}
         .no-data-icon{font-size:62px;margin-bottom:14px;opacity:.25}
@@ -542,6 +606,12 @@ foreach (array_reverse($chartOpps) as $o) {
             </div>
         </div>
         <div class="header-right">
+            <div class="nav-links">
+                <a class="nav-link" href="dashboard.php">🏠 Dashboard</a>
+                <a class="nav-link" href="portfolio.php">💼 Portföy</a>
+                <a class="nav-link" href="scanner.php" target="_blank" rel="noopener noreferrer">⚡ Scanner</a>
+                <a class="nav-link" href="#news">🗞️ Ekonomi Haberleri</a>
+            </div>
             <div class="primary-actions">
                 <a class="action-button" href="scanner.php" target="_blank" rel="noopener noreferrer">
                     ⚡ Scanner Çalıştır
@@ -681,6 +751,24 @@ foreach (array_reverse($chartOpps) as $o) {
             <div class="stat-value">+<?php echo number_format((float)($stats['avg_potential'] ?? 0), 1); ?>%</div>
             <div class="stat-change">Maks: +<?php echo number_format((float)($stats['max_potential'] ?? 0), 1); ?>%</div>
             <div class="stat-bar"><span style="width: <?php echo number_format($avgPotentialBar, 0); ?>%"></span></div>
+        </div>
+    </div>
+
+    <div class="card" id="news" style="margin-top:22px">
+        <div class="section-header" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
+            <div class="section-title">🗞️ Ekonomi Haberleri</div>
+            <span class="chip">Güncel kaynaklar</span>
+        </div>
+        <div class="news-grid">
+            <?php foreach ($newsSources as $source): ?>
+                <div class="news-card">
+                    <div class="news-title"><?php echo safe($source['title']); ?></div>
+                    <div class="news-desc"><?php echo safe($source['desc']); ?></div>
+                    <a class="news-link" href="<?php echo safe($source['url']); ?>" target="_blank" rel="noopener noreferrer">
+                        Haberlere git →
+                    </a>
+                </div>
+            <?php endforeach; ?>
         </div>
     </div>
 
