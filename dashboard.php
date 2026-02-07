@@ -38,12 +38,13 @@ function riskLabel(string $risk): array {
  * Not: Gerçek performans için updater mantığına bağlayacağız.
  */
 function calcPerformance(PDO $pdo, ?int $user_id): array {
-    $whereUser = '';
     $params = [];
+    $clauses = ["( (expires_at IS NOT NULL AND expires_at <= NOW()) OR is_active = 0 )"];
     if ($user_id !== null) {
-        $whereUser = 'WHERE user_id = ? AND';
+        $clauses[] = 'user_id = ?';
         $params[] = $user_id;
     }
+    $whereSql = 'WHERE ' . implode(' AND ', $clauses);
 
     // Kapanmış sinyaller: expires_at geçmiş veya is_active=0 (ikisini de sayalım)
     $stmt = $pdo->prepare("
@@ -59,8 +60,7 @@ function calcPerformance(PDO $pdo, ?int $user_id): array {
             AVG(expected_profit_percent) AS avg_expected,
             AVG(confidence_score) AS avg_conf
         FROM opportunities
-        {$whereUser}
-        ( (expires_at IS NOT NULL AND expires_at <= NOW()) OR is_active = 0 )
+        {$whereSql}
     ");
     $stmt->execute($params);
     $row = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
@@ -332,6 +332,22 @@ $newsSources = [
             border:1px solid rgba(59,130,246,.25);
             background:rgba(15,23,42,.55);
             color:#cbd5e1;font-size:12px;font-weight:700
+        }
+
+        .action-button{
+            display:inline-flex;align-items:center;gap:8px;
+            padding:10px 16px;border-radius:14px;
+            border:1px solid rgba(99,102,241,.45);
+            background: linear-gradient(135deg, rgba(79,70,229,.95), rgba(14,165,233,.9));
+            color:#fff;font-size:13px;font-weight:800;
+            text-decoration:none;
+            box-shadow: 0 16px 32px rgba(59,130,246,.35);
+            transition: transform .2s ease, box-shadow .2s ease, filter .2s ease;
+        }
+        .action-button:hover{
+            transform: translateY(-1px);
+            box-shadow: 0 22px 50px rgba(59,130,246,.45);
+            filter: brightness(1.05);
         }
 
         .action-button{
