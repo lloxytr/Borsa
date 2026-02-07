@@ -85,13 +85,13 @@ function calcPerformance(PDO $pdo, ?int $user_id): array {
  * Son X gün performansı
  */
 function calcRecentPerformance(PDO $pdo, ?int $user_id, int $days): array {
+    $days = max(1, (int)$days);
     $whereUser = '';
     $params = [];
     if ($user_id !== null) {
         $whereUser = 'WHERE user_id = ? AND';
         $params[] = $user_id;
     }
-    $params[] = $days;
 
     $stmt = $pdo->prepare("
         SELECT
@@ -104,7 +104,7 @@ function calcRecentPerformance(PDO $pdo, ?int $user_id, int $days): array {
             ) AS win
         FROM trade_results
         {$whereUser}
-        closed_at >= DATE_SUB(NOW(), INTERVAL ? DAY)
+        closed_at >= DATE_SUB(NOW(), INTERVAL {$days} DAY)
     ");
     $stmt->execute($params);
     $row = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
@@ -332,6 +332,22 @@ $newsSources = [
             border:1px solid rgba(59,130,246,.25);
             background:rgba(15,23,42,.55);
             color:#cbd5e1;font-size:12px;font-weight:700
+        }
+
+        .action-button{
+            display:inline-flex;align-items:center;gap:8px;
+            padding:10px 16px;border-radius:14px;
+            border:1px solid rgba(99,102,241,.45);
+            background: linear-gradient(135deg, rgba(79,70,229,.95), rgba(14,165,233,.9));
+            color:#fff;font-size:13px;font-weight:800;
+            text-decoration:none;
+            box-shadow: 0 16px 32px rgba(59,130,246,.35);
+            transition: transform .2s ease, box-shadow .2s ease, filter .2s ease;
+        }
+        .action-button:hover{
+            transform: translateY(-1px);
+            box-shadow: 0 22px 50px rgba(59,130,246,.45);
+            filter: brightness(1.05);
         }
 
         .action-button{
