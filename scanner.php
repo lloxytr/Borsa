@@ -161,51 +161,76 @@ if (!isset($pdo)) {
 $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
 /**
+ * opportunities tablosundaki kolonları al
+ */
+function getTableColumns(PDO $pdo, string $table): array {
+    try {
+        $stmt = $pdo->query("SHOW COLUMNS FROM `{$table}`");
+        $columns = [];
+        foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+            if (isset($row['Field'])) {
+                $columns[] = $row['Field'];
+            }
+        }
+        return $columns;
+    } catch (PDOException $e) {
+        logMessage("HATA: Tablo kolonları alınamadı ({$table}) - " . $e->getMessage());
+        return [];
+    }
+}
+
+/**
+ * Dinamik INSERT oluştur (mevcut kolonlara göre)
+ */
+function buildOpportunityInsert(PDO $pdo): array {
+    $available = array_flip(getTableColumns($pdo, 'opportunities'));
+    if (empty($available)) {
+        throw new RuntimeException('opportunities tablo kolonları bulunamadı.');
+    }
+
+    $columnSqlMap = [
+        'user_id' => ':user_id',
+        'symbol' => ':symbol',
+        'name' => ':name',
+        'asset_type' => "'stock'",
+        'action' => ':action',
+        'entry_price' => ':entry_price',
+        'target_price' => ':target_price',
+        'potential_profit' => ':potential_profit',
+        'ai_score' => ':ai_score',
+        'stop_loss' => ':stop_loss',
+        'expected_profit_percent' => ':expected_profit_percent',
+        'confidence_score' => ':confidence_score',
+        'risk_level' => ':risk_level',
+        'timeframe' => ':timeframe',
+        'analysis_reason' => ':analysis_reason',
+        'is_active' => '1',
+        'created_at' => 'NOW()',
+        'notified' => '0',
+        'confidence' => ':confidence',
+        'prediction' => ':prediction',
+        'signal_hash' => ':signal_hash'
+    ];
+
+    $columns = [];
+    $values = [];
+    foreach ($columnSqlMap as $column => $sqlValue) {
+        if (isset($available[$column])) {
+            $columns[] = $column;
+            $values[] = $sqlValue;
+        }
+    }
+
+    $sql = "INSERT IGNORE INTO opportunities (" . implode(', ', $columns) . ") VALUES (" . implode(', ', $values) . ")";
+    return [$pdo->prepare($sql), $columns];
+}
+
+/**
  * opportunities tablo şemanla uyumlu INSERT
  * signal_hash UNIQUE olduğu için INSERT IGNORE kullanıyoruz:
  * - duplicate olursa hata fırlatmaz, rowCount=0 döner
  */
-$insertSqlFull = "
-    INSERT IGNORE INTO opportunities (
-        user_id, symbol, name, asset_type, action,
-        entry_price, target_price, potential_profit, ai_score,
-        stop_loss, expected_profit_percent, confidence_score,
-        risk_level, timeframe, analysis_reason,
-        is_active, created_at, notified,
-        confidence, prediction, signal_hash
-    ) VALUES (
-        :user_id, :symbol, :name, 'stock', :action,
-        :entry_price, :target_price, :potential_profit, :ai_score,
-        :stop_loss, :expected_profit_percent, :confidence_score,
-        :risk_level, :timeframe, :analysis_reason,
-        1, NOW(), 0,
-        :confidence, 'HOLD', :signal_hash
-    )
-";
-
-$insertSqlBasic = "
-    INSERT IGNORE INTO opportunities (
-        user_id, symbol, name, asset_type, action,
-        entry_price, target_price, potential_profit, ai_score,
-        stop_loss, expected_profit_percent, confidence_score,
-        risk_level, timeframe, analysis_reason,
-        is_active, created_at, notified
-    ) VALUES (
-        :user_id, :symbol, :name, 'stock', :action,
-        :entry_price, :target_price, :potential_profit, :ai_score,
-        :stop_loss, :expected_profit_percent, :confidence_score,
-        :risk_level, :timeframe, :analysis_reason,
-        1, NOW(), 0
-    )
-";
-
-$insertStmtFull = null;
-try {
-    $insertStmtFull = $pdo->prepare($insertSqlFull);
-} catch (PDOException $e) {
-    logMessage("→ Full INSERT prepare failed, basic mode kullanılacak: " . $e->getMessage());
-}
-$insertStmtBasic = $pdo->prepare($insertSqlBasic);
+[$insertStmt, $insertColumns] = buildOpportunityInsert($pdo);
 
 foreach ($bistUniverse as $symbol => $name) {
     logMessage("Taranıyor: {$symbol} ({$name})");
@@ -341,7 +366,7 @@ foreach ($bistUniverse as $symbol => $name) {
         // Hash
         $signal_hash = buildSignalHash($symbol, $action, $entry_price, $target_price, $stop_loss, $timeframe);
 
-        $paramsFull = [
+        $paramPool = [
             ':user_id' => $user_id,
             ':symbol' => $symbol,
             ':name' => $name,
@@ -357,25 +382,22 @@ foreach ($bistUniverse as $symbol => $name) {
             ':timeframe' => $timeframe,
             ':analysis_reason' => $analysis_reason,
             ':confidence' => $confidence_score,
+            ':prediction' => 'HOLD',
             ':signal_hash' => $signal_hash
         ];
-        $paramsBasic = $paramsFull;
-        unset($paramsBasic[':confidence'], $paramsBasic[':signal_hash']);
 
-        // INSERT (duplicate hash olursa rowCount=0)
-        $usedStmt = $insertStmtFull ?? $insertStmtBasic;
-        try {
-            if ($insertStmtFull === null) {
-                throw new PDOException('Full INSERT statement not available.');
+        $params = [];
+        foreach ($insertColumns as $column) {
+            $key = ':' . $column;
+            if (array_key_exists($key, $paramPool)) {
+                $params[$key] = $paramPool[$key];
             }
-            $insertStmtFull->execute($paramsFull);
-        } catch (PDOException $e) {
-            logMessage("→ INSERT fallback (basic columns): {$symbol} | " . $e->getMessage());
-            $insertStmtBasic->execute($paramsBasic);
-            $usedStmt = $insertStmtBasic;
         }
 
-        if ($usedStmt->rowCount() === 1) {
+        // INSERT (duplicate hash olursa rowCount=0)
+        $insertStmt->execute($params);
+
+        if ($insertStmt->rowCount() === 1) {
             $opportunities_found++;
             logMessage("✓ YENİ FIRSAT: {$symbol} - Güven: {$confidence_score}/100 - Beklenen: +{$expected_profit_percent}%");
         } else {
