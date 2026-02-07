@@ -24,7 +24,10 @@ function logMessage(string $message): void {
  * Risk level normalize (DB enum: low/medium/high)
  */
 function normalizeRiskLevel(string $risk): string {
-    $r = mb_strtolower(trim($risk));
+    $clean = trim($risk);
+    $r = function_exists('mb_strtolower')
+        ? mb_strtolower($clean)
+        : strtolower($clean);
 
     if ($r === 'low' || $r === 'düşük' || $r === 'dusuk') return 'low';
     if ($r === 'high' || $r === 'yüksek' || $r === 'yuksek') return 'high';
@@ -50,6 +53,95 @@ function buildSignalHash(string $symbol, string $action, float $entry, float $ta
         $dayBucket;
 
     return hash('sha256', $raw);
+}
+
+/**
+ * Son performansa göre dinamik min confidence eşiği
+ */
+function getDynamicMinConfidence(PDO $pdo, int $user_id): int {
+    try {
+        $stmt = $pdo->prepare("
+            SELECT
+                COUNT(*) AS total,
+                SUM(CASE WHEN realized_profit_percent > 0 THEN 1 ELSE 0 END) AS wins
+            FROM trade_results
+            WHERE user_id = ?
+              AND closed_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+        ");
+        $stmt->execute([$user_id]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
+    } catch (PDOException $e) {
+        return 50;
+    }
+
+    $total = (int)($row['total'] ?? 0);
+    $wins = (int)($row['wins'] ?? 0);
+    if ($total < 8) {
+        return 50;
+    }
+
+    $winRate = $total > 0 ? ($wins / $total) * 100 : 0;
+    if ($winRate < 45) return 60;
+    if ($winRate < 55) return 55;
+    if ($winRate < 65) return 50;
+    return 45;
+}
+
+/**
+ * Volatiliteye göre hedef/stop ayarla
+ */
+function adjustTargetsByVolatility(float $entry, float $target, float $stop, float $volatilityPercent): array {
+    $volatilityPercent = max(0.5, min(12.0, $volatilityPercent));
+    $expectedProfit = max(2.0, min(12.0, $volatilityPercent * 0.9));
+    $stopPercent = max(1.2, min(6.0, $volatilityPercent * 0.6));
+
+    $adjustedTarget = $entry * (1 + ($expectedProfit / 100));
+    $adjustedStop = $entry * (1 - ($stopPercent / 100));
+
+    if ($target > 0) {
+        $adjustedTarget = min($target, $adjustedTarget);
+    }
+    if ($stop > 0) {
+        $adjustedStop = max($stop, $adjustedStop);
+    }
+
+    return [
+        'target' => round($adjustedTarget, 2),
+        'stop' => round($adjustedStop, 2),
+        'expected_profit_percent' => round((($adjustedTarget - $entry) / $entry) * 100, 2)
+    ];
+}
+
+/**
+ * Son X gün trend eğimi (yüzde değişim)
+ * Veri yoksa null döner.
+ */
+function getTrendSlope(PDO $pdo, string $symbol, int $days = 7): ?float {
+    try {
+        $stmt = $pdo->prepare("
+            SELECT close
+            FROM price_history
+            WHERE symbol = ?
+            ORDER BY date DESC
+            LIMIT ?
+        ");
+        $stmt->execute([$symbol, $days]);
+        $rows = $stmt->fetchAll(PDO::FETCH_COLUMN);
+    } catch (PDOException $e) {
+        return null;
+    }
+
+    if (!$rows || count($rows) < 2) {
+        return null;
+    }
+
+    $latest = (float)$rows[0];
+    $oldest = (float)$rows[count($rows) - 1];
+    if ($oldest <= 0) {
+        return null;
+    }
+
+    return (($latest - $oldest) / $oldest) * 100;
 }
 
 /**
@@ -1098,51 +1190,76 @@ if (!isset($pdo)) {
 $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
 /**
+ * opportunities tablosundaki kolonları al
+ */
+function getTableColumns(PDO $pdo, string $table): array {
+    try {
+        $stmt = $pdo->query("SHOW COLUMNS FROM `{$table}`");
+        $columns = [];
+        foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+            if (isset($row['Field'])) {
+                $columns[] = $row['Field'];
+            }
+        }
+        return $columns;
+    } catch (PDOException $e) {
+        logMessage("HATA: Tablo kolonları alınamadı ({$table}) - " . $e->getMessage());
+        return [];
+    }
+}
+
+/**
+ * Dinamik INSERT oluştur (mevcut kolonlara göre)
+ */
+function buildOpportunityInsert(PDO $pdo): array {
+    $available = array_flip(getTableColumns($pdo, 'opportunities'));
+    if (empty($available)) {
+        throw new RuntimeException('opportunities tablo kolonları bulunamadı.');
+    }
+
+    $columnSqlMap = [
+        'user_id' => ':user_id',
+        'symbol' => ':symbol',
+        'name' => ':name',
+        'asset_type' => "'stock'",
+        'action' => ':action',
+        'entry_price' => ':entry_price',
+        'target_price' => ':target_price',
+        'potential_profit' => ':potential_profit',
+        'ai_score' => ':ai_score',
+        'stop_loss' => ':stop_loss',
+        'expected_profit_percent' => ':expected_profit_percent',
+        'confidence_score' => ':confidence_score',
+        'risk_level' => ':risk_level',
+        'timeframe' => ':timeframe',
+        'analysis_reason' => ':analysis_reason',
+        'is_active' => '1',
+        'created_at' => 'NOW()',
+        'notified' => '0',
+        'confidence' => ':confidence',
+        'prediction' => ':prediction',
+        'signal_hash' => ':signal_hash'
+    ];
+
+    $columns = [];
+    $values = [];
+    foreach ($columnSqlMap as $column => $sqlValue) {
+        if (isset($available[$column])) {
+            $columns[] = $column;
+            $values[] = $sqlValue;
+        }
+    }
+
+    $sql = "INSERT IGNORE INTO opportunities (" . implode(', ', $columns) . ") VALUES (" . implode(', ', $values) . ")";
+    return [$pdo->prepare($sql), $columns];
+}
+
+/**
  * opportunities tablo şemanla uyumlu INSERT
  * signal_hash UNIQUE olduğu için INSERT IGNORE kullanıyoruz:
  * - duplicate olursa hata fırlatmaz, rowCount=0 döner
  */
-$insertSqlFull = "
-    INSERT IGNORE INTO opportunities (
-        user_id, symbol, name, asset_type, action,
-        entry_price, target_price, potential_profit, ai_score,
-        stop_loss, expected_profit_percent, confidence_score,
-        risk_level, timeframe, analysis_reason,
-        is_active, created_at, notified,
-        confidence, prediction, signal_hash
-    ) VALUES (
-        :user_id, :symbol, :name, 'stock', :action,
-        :entry_price, :target_price, :potential_profit, :ai_score,
-        :stop_loss, :expected_profit_percent, :confidence_score,
-        :risk_level, :timeframe, :analysis_reason,
-        1, NOW(), 0,
-        :confidence, 'HOLD', :signal_hash
-    )
-";
-
-$insertSqlBasic = "
-    INSERT IGNORE INTO opportunities (
-        user_id, symbol, name, asset_type, action,
-        entry_price, target_price, potential_profit, ai_score,
-        stop_loss, expected_profit_percent, confidence_score,
-        risk_level, timeframe, analysis_reason,
-        is_active, created_at, notified
-    ) VALUES (
-        :user_id, :symbol, :name, 'stock', :action,
-        :entry_price, :target_price, :potential_profit, :ai_score,
-        :stop_loss, :expected_profit_percent, :confidence_score,
-        :risk_level, :timeframe, :analysis_reason,
-        1, NOW(), 0
-    )
-";
-
-$insertStmtFull = null;
-try {
-    $insertStmtFull = $pdo->prepare($insertSqlFull);
-} catch (PDOException $e) {
-    logMessage("→ Full INSERT prepare failed, basic mode kullanılacak: " . $e->getMessage());
-}
-$insertStmtBasic = $pdo->prepare($insertSqlBasic);
+[$insertStmt, $insertColumns] = buildOpportunityInsert($pdo);
 
 foreach ($bistUniverse as $symbol => $name) {
     logMessage("Taranıyor: {$symbol} ({$name})");
@@ -1398,6 +1515,26 @@ foreach ($bistUniverse as $symbol => $name) {
         $stop_loss = $adjusted['stop'];
         $expected_profit_percent = $adjusted['expected_profit_percent'];
 
+        // Risk/Ödül oranı filtresi
+        $riskAmount = $entry_price - $stop_loss;
+        $rewardAmount = $target_price - $entry_price;
+        if ($riskAmount > 0 && ($rewardAmount / $riskAmount) < 1.4) {
+            logMessage("→ Risk/Ödül filtresi: {$symbol} (R/R " . number_format($rewardAmount / $riskAmount, 2) . ")");
+            usleep(400000);
+            continue;
+        }
+
+        $volatilityPercent = $current_price > 0 ? (($high_price - $low_price) / $current_price) * 100 : 0.0;
+        if ($volatilityPercent > 9.5 && $confidence_score < 75) {
+            logMessage("→ Aşırı volatilite filtresi: {$symbol} (vol={$volatilityPercent}%)");
+            usleep(400000);
+            continue;
+        }
+        $adjusted = adjustTargetsByVolatility($entry_price, $target_price, $stop_loss, $volatilityPercent);
+        $target_price = $adjusted['target'];
+        $stop_loss = $adjusted['stop'];
+        $expected_profit_percent = $adjusted['expected_profit_percent'];
+
         $volatilityPercent = $current_price > 0 ? (($high_price - $low_price) / $current_price) * 100 : 0.0;
         if ($volatilityPercent > 9.5 && $confidence_score < 75) {
             logMessage("→ Aşırı volatilite filtresi: {$symbol} (vol={$volatilityPercent}%)");
@@ -1444,7 +1581,7 @@ foreach ($bistUniverse as $symbol => $name) {
         // Hash
         $signal_hash = buildSignalHash($symbol, $action, $entry_price, $target_price, $stop_loss, $timeframe);
 
-        $paramsFull = [
+        $paramPool = [
             ':user_id' => $user_id,
             ':symbol' => $symbol,
             ':name' => $name,
@@ -1460,25 +1597,22 @@ foreach ($bistUniverse as $symbol => $name) {
             ':timeframe' => $timeframe,
             ':analysis_reason' => $analysis_reason,
             ':confidence' => $confidence_score,
+            ':prediction' => 'HOLD',
             ':signal_hash' => $signal_hash
         ];
-        $paramsBasic = $paramsFull;
-        unset($paramsBasic[':confidence'], $paramsBasic[':signal_hash']);
 
-        // INSERT (duplicate hash olursa rowCount=0)
-        $usedStmt = $insertStmtFull ?? $insertStmtBasic;
-        try {
-            if ($insertStmtFull === null) {
-                throw new PDOException('Full INSERT statement not available.');
+        $params = [];
+        foreach ($insertColumns as $column) {
+            $key = ':' . $column;
+            if (array_key_exists($key, $paramPool)) {
+                $params[$key] = $paramPool[$key];
             }
-            $insertStmtFull->execute($paramsFull);
-        } catch (PDOException $e) {
-            logMessage("→ INSERT fallback (basic columns): {$symbol} | " . $e->getMessage());
-            $insertStmtBasic->execute($paramsBasic);
-            $usedStmt = $insertStmtBasic;
         }
 
-        if ($usedStmt->rowCount() === 1) {
+        // INSERT (duplicate hash olursa rowCount=0)
+        $insertStmt->execute($params);
+
+        if ($insertStmt->rowCount() === 1) {
             $opportunities_found++;
             logMessage("✓ YENİ FIRSAT: {$symbol} - Güven: {$confidence_score}/100 - Beklenen: +{$expected_profit_percent}%");
         } else {
