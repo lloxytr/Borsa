@@ -237,6 +237,7 @@ foreach (array_reverse($chartOpps) as $o) {
         }
         .logo-text p{font-size:12px;color:#94a3b8;margin-top:2px}
         .header-right{display:flex;align-items:center;gap:12px}
+        .primary-actions{display:flex;align-items:center;gap:10px}
         .live-badge{
             display:flex;align-items:center;gap:8px;padding:8px 14px;
             background:rgba(16,185,129,.10);
@@ -252,6 +253,22 @@ foreach (array_reverse($chartOpps) as $o) {
             border:1px solid rgba(59,130,246,.25);
             background:rgba(15,23,42,.55);
             color:#cbd5e1;font-size:12px;font-weight:700
+        }
+
+        .action-button{
+            display:inline-flex;align-items:center;gap:8px;
+            padding:10px 16px;border-radius:14px;
+            border:1px solid rgba(99,102,241,.45);
+            background: linear-gradient(135deg, rgba(79,70,229,.95), rgba(14,165,233,.9));
+            color:#fff;font-size:13px;font-weight:800;
+            text-decoration:none;
+            box-shadow: 0 16px 32px rgba(59,130,246,.35);
+            transition: transform .2s ease, box-shadow .2s ease, filter .2s ease;
+        }
+        .action-button:hover{
+            transform: translateY(-1px);
+            box-shadow: 0 22px 50px rgba(59,130,246,.45);
+            filter: brightness(1.05);
         }
 
         .top-row{
@@ -287,7 +304,7 @@ foreach (array_reverse($chartOpps) as $o) {
             content:'';
             position:absolute;
             inset:0;
-            background: radial-gradient(circle at top right, rgba(99,102,241,0.12), transparent 55%);
+            background: radial-gradient(circle at top right, rgba(99,102,241,0.18), transparent 60%);
             pointer-events:none;
         }
 
@@ -468,7 +485,12 @@ foreach (array_reverse($chartOpps) as $o) {
             </div>
         </div>
         <div class="header-right">
-            <span class="chip">📌 Alan adı: <strong>baralmotor.online</strong></span>
+            <div class="primary-actions">
+                <a class="action-button" href="scanner.php" target="_blank" rel="noopener noreferrer">
+                    ⚡ Scanner Çalıştır
+                </a>
+                <span class="chip">📌 Alan adı: <strong>baralmotor.online</strong></span>
+            </div>
             <div class="live-badge">
                 <div class="live-dot"></div>
                 <span>CANLI</span>
