@@ -233,6 +233,7 @@ function analyzeStockAdvanced($symbol, $current_data, $historical_prices) {
             'rsi' => $rsi,
             'macd' => $macd['macd'],
             'macd_signal' => $macd['signal'],
+            'macd_histogram' => $macd['histogram'],
             'sma20' => $sma20,
             'sma50' => $sma50,
             'bollinger_upper' => $bollinger['upper'],

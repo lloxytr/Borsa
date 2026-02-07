@@ -173,13 +173,24 @@ $top = $opportunities[0] ?? null;
 try {
     $perf = calcPerformance($pdo, $hasUserOpps ? $user_id : null);
     $recent7 = calcRecentPerformance($pdo, $hasUserOpps ? $user_id : null, 7);
-    $recent30 = calcRecentPerformance($pdo, $hasUserOpps ? $user_id : null, 30);
+$recent30 = calcRecentPerformance($pdo, $hasUserOpps ? $user_id : null, 30);
 } catch (Throwable $e) {
     error_log("Dashboard performance error: " . $e->getMessage());
     $perf = ['closed_total' => 0, 'closed_win' => 0, 'closed_loss' => 0, 'win_rate' => 0, 'avg_expected' => 0, 'avg_conf' => 0];
     $recent7 = ['total' => 0, 'win' => 0, 'loss' => 0, 'win_rate' => 0];
     $recent30 = ['total' => 0, 'win' => 0, 'loss' => 0, 'win_rate' => 0];
 }
+
+// Stat bar oranları
+$totalOpp = (int)($stats['total_opportunities'] ?? 0);
+$totalOppBar = min(100, $totalOpp * 5);
+$avgConf = (float)($stats['avg_confidence'] ?? 0);
+$avgConfBar = min(100, $avgConf);
+$winRateBar = min(100, (float)$perf['win_rate']);
+$recent7Bar = min(100, (float)$recent7['win_rate']);
+$recent30Bar = min(100, (float)$recent30['win_rate']);
+$avgPotential = (float)($stats['avg_potential'] ?? 0);
+$avgPotentialBar = min(100, ($avgPotential / 15) * 100);
 
 // Grafik datası (son 10)
 $chartOpps = array_slice($opportunities, 0, 10);
@@ -217,6 +228,20 @@ foreach (array_reverse($chartOpps) as $o) {
             background-size:50px 50px;z-index:0;pointer-events:none;
             mask-image: radial-gradient(circle at 50% 20%, black 0%, transparent 65%);
         }
+        .ambient-glow{
+            position:fixed;inset:0;pointer-events:none;z-index:0;
+        }
+        .glow-orb{
+            position:absolute;border-radius:50%;filter: blur(80px);
+            opacity:.35;animation: floatOrb 18s ease-in-out infinite;
+        }
+        .glow-orb.blue{background: rgba(59,130,246,.65);width:420px;height:420px;top:-120px;left:-120px;}
+        .glow-orb.purple{background: rgba(139,92,246,.6);width:360px;height:360px;bottom:-160px;right:-100px;animation-delay:6s;}
+        .glow-orb.cyan{background: rgba(14,165,233,.55);width:280px;height:280px;top:45%;left:70%;animation-delay:10s;}
+        @keyframes floatOrb{
+            0%,100%{transform: translate(0,0) scale(1)}
+            50%{transform: translate(20px,-30px) scale(1.08)}
+        }
         .container{max-width:1600px;margin:0 auto;padding:40px 30px;position:relative;z-index:1}
         .header{
             display:flex;justify-content:space-between;align-items:center;
@@ -253,6 +278,22 @@ foreach (array_reverse($chartOpps) as $o) {
             border:1px solid rgba(59,130,246,.25);
             background:rgba(15,23,42,.55);
             color:#cbd5e1;font-size:12px;font-weight:700
+        }
+
+        .action-button{
+            display:inline-flex;align-items:center;gap:8px;
+            padding:10px 16px;border-radius:14px;
+            border:1px solid rgba(99,102,241,.45);
+            background: linear-gradient(135deg, rgba(79,70,229,.95), rgba(14,165,233,.9));
+            color:#fff;font-size:13px;font-weight:800;
+            text-decoration:none;
+            box-shadow: 0 16px 32px rgba(59,130,246,.35);
+            transition: transform .2s ease, box-shadow .2s ease, filter .2s ease;
+        }
+        .action-button:hover{
+            transform: translateY(-1px);
+            box-shadow: 0 22px 50px rgba(59,130,246,.45);
+            filter: brightness(1.05);
         }
 
         .action-button{
@@ -363,6 +404,17 @@ foreach (array_reverse($chartOpps) as $o) {
         .stat-value{font-size:34px;font-weight:900;margin-bottom:8px;letter-spacing:.2px}
         .stat-change{font-size:13px;color:#10b981;font-weight:800}
         .stat-change.neg{color:#ef4444}
+        .stat-bar{
+            height:6px;border-radius:999px;background:rgba(148,163,184,.12);
+            overflow:hidden;margin-top:10px
+        }
+        .stat-bar span{
+            display:block;height:100%;
+            background: linear-gradient(90deg,#22d3ee,#6366f1);
+            box-shadow:0 0 12px rgba(99,102,241,.6);
+            border-radius:999px;
+            transition: width .6s ease;
+        }
 
         .main-grid{display:grid;grid-template-columns: 1fr 420px;gap:18px;margin-bottom:20px}
         .section-title{font-size:18px;font-weight:900}
@@ -473,6 +525,11 @@ foreach (array_reverse($chartOpps) as $o) {
 </head>
 <body>
 <div class="grid-background"></div>
+<div class="ambient-glow">
+    <div class="glow-orb blue"></div>
+    <div class="glow-orb purple"></div>
+    <div class="glow-orb cyan"></div>
+</div>
 
 <div class="container">
     <!-- Header -->
@@ -593,31 +650,37 @@ foreach (array_reverse($chartOpps) as $o) {
             <div class="stat-label">Toplam Fırsat</div>
             <div class="stat-value"><?php echo number_format((int)($stats['total_opportunities'] ?? 0)); ?></div>
             <div class="stat-change">+<?php echo (int)($stats['today_count'] ?? 0); ?> Bugün Eklendi</div>
+            <div class="stat-bar"><span style="width: <?php echo number_format($totalOppBar, 0); ?>%"></span></div>
         </div>
         <div class="card">
             <div class="stat-label">AI Ortalama Güven</div>
             <div class="stat-value"><?php echo number_format((float)($stats['avg_confidence'] ?? 0), 1); ?>/100</div>
             <div class="stat-change">Kalite: <?php echo ((float)($stats['avg_confidence'] ?? 0) >= 70) ? 'Yüksek' : 'Orta'; ?></div>
+            <div class="stat-bar"><span style="width: <?php echo number_format($avgConfBar, 0); ?>%"></span></div>
         </div>
         <div class="card">
             <div class="stat-label">Başarı Oranı</div>
             <div class="stat-value"><?php echo number_format((float)$perf['win_rate'], 1); ?>%</div>
             <div class="stat-change">✅ <?php echo (int)$perf['closed_win']; ?> / ❌ <?php echo (int)$perf['closed_loss']; ?> (Kapanan: <?php echo (int)$perf['closed_total']; ?>)</div>
+            <div class="stat-bar"><span style="width: <?php echo number_format($winRateBar, 0); ?>%"></span></div>
         </div>
         <div class="card">
             <div class="stat-label">Son 7 Gün</div>
             <div class="stat-value"><?php echo number_format((float)$recent7['win_rate'], 1); ?>%</div>
             <div class="stat-change">✅ <?php echo (int)$recent7['win']; ?> / ❌ <?php echo (int)$recent7['loss']; ?> (<?php echo (int)$recent7['total']; ?>)</div>
+            <div class="stat-bar"><span style="width: <?php echo number_format($recent7Bar, 0); ?>%"></span></div>
         </div>
         <div class="card">
             <div class="stat-label">Son 30 Gün</div>
             <div class="stat-value"><?php echo number_format((float)$recent30['win_rate'], 1); ?>%</div>
             <div class="stat-change">✅ <?php echo (int)$recent30['win']; ?> / ❌ <?php echo (int)$recent30['loss']; ?> (<?php echo (int)$recent30['total']; ?>)</div>
+            <div class="stat-bar"><span style="width: <?php echo number_format($recent30Bar, 0); ?>%"></span></div>
         </div>
         <div class="card">
             <div class="stat-label">Ortalama Getiri</div>
             <div class="stat-value">+<?php echo number_format((float)($stats['avg_potential'] ?? 0), 1); ?>%</div>
             <div class="stat-change">Maks: +<?php echo number_format((float)($stats['max_potential'] ?? 0), 1); ?>%</div>
+            <div class="stat-bar"><span style="width: <?php echo number_format($avgPotentialBar, 0); ?>%"></span></div>
         </div>
     </div>
 
@@ -743,6 +806,13 @@ foreach (array_reverse($chartOpps) as $o) {
     const ctx = document.getElementById('oppChart');
     if (!ctx) return;
 
+    const gradientProfit = ctx.getContext('2d').createLinearGradient(0, 0, 0, 260);
+    gradientProfit.addColorStop(0, 'rgba(56,189,248,0.45)');
+    gradientProfit.addColorStop(1, 'rgba(56,189,248,0.02)');
+    const gradientConf = ctx.getContext('2d').createLinearGradient(0, 0, 0, 260);
+    gradientConf.addColorStop(0, 'rgba(139,92,246,0.45)');
+    gradientConf.addColorStop(1, 'rgba(139,92,246,0.02)');
+
     new Chart(ctx, {
         type: 'line',
         data: {
@@ -752,15 +822,23 @@ foreach (array_reverse($chartOpps) as $o) {
                     label: 'Beklenen Getiri (%)',
                     data: profits,
                     tension: 0.35,
-                    borderWidth: 2,
-                    pointRadius: 3
+                    borderWidth: 2.5,
+                    pointRadius: 3,
+                    pointHoverRadius: 5,
+                    borderColor: '#38bdf8',
+                    backgroundColor: gradientProfit,
+                    fill: true
                 },
                 {
                     label: 'Güven Skoru (/100)',
                     data: confs,
                     tension: 0.35,
-                    borderWidth: 2,
-                    pointRadius: 3
+                    borderWidth: 2.5,
+                    pointRadius: 3,
+                    pointHoverRadius: 5,
+                    borderColor: '#8b5cf6',
+                    backgroundColor: gradientConf,
+                    fill: true
                 }
             ]
         },
@@ -770,7 +848,14 @@ foreach (array_reverse($chartOpps) as $o) {
             interaction: { mode: 'index', intersect: false },
             plugins: {
                 legend: { labels: { color: '#cbd5e1', font: { weight: '700' } } },
-                tooltip: { enabled: true }
+                tooltip: {
+                    enabled: true,
+                    backgroundColor: 'rgba(15,23,42,0.92)',
+                    borderColor: 'rgba(99,102,241,0.6)',
+                    borderWidth: 1,
+                    titleColor: '#e2e8f0',
+                    bodyColor: '#cbd5e1'
+                }
             },
             scales: {
                 x: {
