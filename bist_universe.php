@@ -6,6 +6,14 @@
  * Not: Listeyi tam tutmak için bu dosyayı periyodik güncelle.
  */
 function getBIST200Symbols(): array {
+    $dataFile = __DIR__ . '/data/bist200.json';
+    if (is_file($dataFile)) {
+        $json = json_decode((string)file_get_contents($dataFile), true);
+        if (is_array($json)) {
+            return $json;
+        }
+    }
+
     return [
         'AKBNK' => 'Akbank',
         'ALARK' => 'Alarko Holding',
